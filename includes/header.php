@@ -9,18 +9,22 @@ $activeMenu = $activeMenu ?? 'dashboard';
 initSession();
 $currentRole = getUserRole();
 
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+if (basename($base) === 'master') $base = dirname($base);
+$base = rtrim($base, '/\\');
+
 $menuItems = [
     ['section' => 'MAIN'],
-    ['key' => 'dashboard',       'label' => 'Dashboard',        'icon' => 'fa-chart-pie',    'href' => '/PHO_BUDGETING/index.php'],
-    ['key' => 'admin_dashboard', 'label' => 'Budget Overview',  'icon' => 'fa-layer-group',  'href' => '/PHO_BUDGETING/admin_dashboard.php'],
+    ['key' => 'dashboard',       'label' => 'Dashboard',        'icon' => 'fa-chart-pie',    'href' => $base . '/index.php'],
+    ['key' => 'admin_dashboard', 'label' => 'Budget Overview',  'icon' => 'fa-layer-group',  'href' => $base . '/admin_dashboard.php'],
     ['section' => 'PROPOSALS'],
-    ['key' => 'create',          'label' => 'New Proposal',     'icon' => 'fa-plus-circle',  'href' => '/PHO_BUDGETING/create.php'],
+    ['key' => 'create',          'label' => 'New Proposal',     'icon' => 'fa-plus-circle',  'href' => $base . '/create.php'],
     ['section' => 'MASTER DATA'],
-    ['key' => 'account_codes', 'label' => 'Account Codes',   'icon' => 'fa-barcode',      'href' => '/PHO_BUDGETING/master/account_codes.php'],
-    ['key' => 'programs',      'label' => 'Programs (PPA)',    'icon' => 'fa-sitemap',     'href' => '/PHO_BUDGETING/master/programs.php'],
-    ['key' => 'units',         'label' => 'Units',             'icon' => 'fa-building',    'href' => '/PHO_BUDGETING/master/units.php'],
-    ['key' => 'fund_sources',  'label' => 'Fund Sources',     'icon' => 'fa-wallet',      'href' => '/PHO_BUDGETING/master/fund_sources.php'],
-    ['key' => 'indicators',    'label' => 'Indicators',       'icon' => 'fa-gauge-high',  'href' => '/PHO_BUDGETING/master/indicators.php'],
+    ['key' => 'account_codes', 'label' => 'Account Codes',   'icon' => 'fa-barcode',      'href' => $base . '/master/account_codes.php'],
+    ['key' => 'programs',      'label' => 'Programs (PPA)',    'icon' => 'fa-sitemap',     'href' => $base . '/master/programs.php'],
+    ['key' => 'units',         'label' => 'Units',             'icon' => 'fa-building',    'href' => $base . '/master/units.php'],
+    ['key' => 'fund_sources',  'label' => 'Fund Sources',     'icon' => 'fa-wallet',      'href' => $base . '/master/fund_sources.php'],
+    ['key' => 'indicators',    'label' => 'Indicators',       'icon' => 'fa-gauge-high',  'href' => $base . '/master/indicators.php'],
 ];
 ?>
 <!DOCTYPE html>
@@ -28,6 +32,7 @@ $menuItems = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="base-url" content="<?= e($base) ?>">
     <title><?= e($pageTitle) ?> — <?= APP_NAME ?></title>
 
     <script src="https://cdn.tailwindcss.com"></script>

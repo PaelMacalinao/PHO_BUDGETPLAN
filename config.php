@@ -12,6 +12,9 @@ define('DB_CHARSET', 'utf8mb4');
 define('APP_NAME', '2026 Conso Proposal V3');
 define('APP_ORG',  'Provincial Health Office');
 
+define('ROOT_PATH', __DIR__);
+define('BASE_URL',  rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'));
+
 function getConnection(): PDO
 {
     static $pdo = null;
