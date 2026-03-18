@@ -39,16 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data[$m] = max(0, round((float)($_POST[$m] ?? 0), 2));
             $allocTotal += $data[$m];
         }
-        $data['total_allocation'] = round($allocTotal, 2);
+        $submittedTotal = round((float)($_POST['total_allocation'] ?? 0), 2);
+        $data['total_allocation'] = $submittedTotal > 0 ? $submittedTotal : round($allocTotal, 2);
 
         $sql = "INSERT INTO tbl_budget_proposals
-                (ppa_description, program_id, account_id, fund_source_id, indicator_id,
+                (ppa_description, program_id, account_id, fund_source_id, indicator_id, unit_id,
                  q1_target, q2_target, q3_target, q4_target, target_total,
                  jan_amt, feb_amt, mar_amt, apr_amt, may_amt, jun_amt,
                  jul_amt, aug_amt, sep_amt, oct_amt, nov_amt, dec_amt, total_allocation,
                  justification)
                 VALUES
-                (:ppa_description, :program_id, :account_id, :fund_source_id, :indicator_id,
+                (:ppa_description, :program_id, :account_id, :fund_source_id, :indicator_id, :unit_id,
                  :q1_target, :q2_target, :q3_target, :q4_target, :target_total,
                  :jan_amt, :feb_amt, :mar_amt, :apr_amt, :may_amt, :jun_amt,
                  :jul_amt, :aug_amt, :sep_amt, :oct_amt, :nov_amt, :dec_amt, :total_allocation,
@@ -81,9 +82,10 @@ try {
     $accounts   = $pdo->query("SELECT id, account_code, account_title, expense_class FROM tbl_account_codes ORDER BY account_code")->fetchAll();
     $fundSrcs   = $pdo->query("SELECT id, fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll();
     $indicators = $pdo->query("SELECT id, indicator_description FROM tbl_indicators ORDER BY id")->fetchAll();
+    $units      = $pdo->query("SELECT id, unit_name FROM tbl_units ORDER BY unit_name")->fetchAll();
 } catch (PDOException $e) {
     error_log('DB Error: ' . $e->getMessage());
-    $programs = $accounts = $fundSrcs = $indicators = [];
+    $programs = $accounts = $fundSrcs = $indicators = $units = [];
 }
 
 require_once __DIR__ . '/includes/header.php';
@@ -149,6 +151,15 @@ require_once __DIR__ . '/includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>
+                <select name="unit_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <option value="">— Select Unit —</option>
+                    <?php foreach ($units as $u): ?>
+                        <option value="<?= (int)$u['id'] ?>"><?= e($u['unit_name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -206,15 +217,22 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <?php endforeach; ?>
         </div>
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-peso-sign"></i></div>
-                <div>
-                    <span class="block text-xs text-amber-600 font-medium">Total Annual Allocation</span>
-                    <span class="block text-2xl font-bold text-amber-800" id="totalAllocation">₱ 0.00</span>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-peso-sign"></i></div>
+                    <span class="text-sm font-semibold text-amber-700">Total Annual Allocation / Appropriation</span>
                 </div>
+                <span class="text-xs text-amber-400 italic" id="allocMode">Auto-computed or Manual Entry</span>
             </div>
-            <span class="text-xs text-amber-500 italic">Auto-computed</span>
+            <div class="col-md-6 col-lg-5">
+                <div class="input-group">
+                    <span class="input-group-text">₱</span>
+                    <input type="number" name="total_allocation" id="totalAllocation" min="0" step="0.01" value="0.00" placeholder="0.00"
+                           class="form-control text-success" />
+                </div>
+                <small id="amountInWords" class="text-muted mt-1 d-block">Zero Pesos</small>
+            </div>
         </div>
     </div>
 
@@ -352,13 +370,79 @@ require_once __DIR__ . '/includes/header.php';
     }
     quarterInputs.forEach(inp => inp.addEventListener('input', computeTargets));
 
+    // ── Number to Words (Philippine Peso) ──────────
+    const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
+                  'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen',
+                  'Seventeen','Eighteen','Nineteen'];
+    const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+    const scales = ['','Thousand','Million','Billion','Trillion'];
+
+    function chunkToWords(n) {
+        if (n === 0) return '';
+        let s = '';
+        if (n >= 100) { s += ones[Math.floor(n/100)] + ' Hundred'; n %= 100; if (n) s += ' '; }
+        if (n >= 20) { s += tens[Math.floor(n/10)]; n %= 10; if (n) s += '-'; }
+        if (n > 0) s += ones[n];
+        return s;
+    }
+
+    function numberToWords(num) {
+        if (num === 0) return 'Zero';
+        if (num < 0) return 'Negative ' + numberToWords(-num);
+        let parts = [], scaleIdx = 0, n = Math.floor(num);
+        while (n > 0) {
+            const chunk = n % 1000;
+            if (chunk > 0) parts.unshift(chunkToWords(chunk) + (scales[scaleIdx] ? ' ' + scales[scaleIdx] : ''));
+            n = Math.floor(n / 1000);
+            scaleIdx++;
+        }
+        return parts.join(' ') || 'Zero';
+    }
+
+    function pesoWords(value) {
+        const num = parseFloat(value) || 0;
+        if (num === 0) return 'Zero Pesos';
+        const abs = Math.abs(num);
+        const pesos = Math.floor(abs);
+        const centavos = Math.round((abs - pesos) * 100);
+        let result = (num < 0 ? 'Negative ' : '') + numberToWords(pesos) + ' Peso' + (pesos !== 1 ? 's' : '');
+        if (centavos > 0) result += ' and ' + numberToWords(centavos) + ' Centavo' + (centavos !== 1 ? 's' : '');
+        return result;
+    }
+
+    const amountInWordsEl = document.getElementById('amountInWords');
+    function updateAmountInWords() {
+        if (amountInWordsEl) amountInWordsEl.textContent = pesoWords(totalAllocInput.value);
+    }
+
     // ── Auto-compute: Financial Allocation ───────
+    const totalAllocInput = document.getElementById('totalAllocation');
+    const allocModeLabel  = document.getElementById('allocMode');
+    let manualAllocEdit   = false;
+
     function computeAllocation() {
+        if (manualAllocEdit) return;
         let total = 0;
         monthInputs.forEach(inp => { total += parseFloat(inp.value) || 0; });
-        document.getElementById('totalAllocation').textContent = '₱ ' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        totalAllocInput.value = total.toFixed(2);
+        updateAmountInWords();
     }
-    monthInputs.forEach(inp => inp.addEventListener('input', computeAllocation));
+
+    monthInputs.forEach(inp => inp.addEventListener('input', () => {
+        manualAllocEdit = false;
+        if (allocModeLabel) allocModeLabel.textContent = 'Auto-computed';
+        computeAllocation();
+    }));
+
+    totalAllocInput.addEventListener('input', () => {
+        manualAllocEdit = true;
+        if (allocModeLabel) allocModeLabel.textContent = 'Manual Entry';
+        updateAmountInWords();
+    });
+
+    totalAllocInput.addEventListener('focus', () => {
+        totalAllocInput.select();
+    });
 
     // ── Form submission ──────────────────────────
     form.addEventListener('submit', async (e) => {
@@ -413,5 +497,6 @@ require_once __DIR__ . '/includes/header.php';
     updateIndicator();
     computeTargets();
     computeAllocation();
+    updateAmountInWords();
 })();
 </script>
