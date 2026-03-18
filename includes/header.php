@@ -41,7 +41,8 @@ $menuItems = [
             theme: {
                 extend: {
                     colors: {
-                        brand: {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},
+                        brand: {50:'#f0faf3',100:'#d5f0dc',200:'#a8e0b9',300:'#6ec98a',400:'#3aad5e',500:'#1a7a3a',600:'#0b4d26',700:'#093f1f',800:'#073218',900:'#052611'},
+                        accent:{50:'#fef9e7',100:'#fdf0c4',200:'#fbe28a',300:'#f9d24f',400:'#f9ba15',500:'#e5a80e',600:'#bf8b09',700:'#8c6607',800:'#5f4504',900:'#332503'},
                     }
                 }
             }
@@ -51,93 +52,8 @@ $menuItems = [
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="<?= e($base) ?>/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <style>
-        input[type="number"]{-moz-appearance:textfield}
-        input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-        ::-webkit-scrollbar{width:6px;height:6px}
-        ::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:4px}
-        table.dataTable thead th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280}
-        table.dataTable tbody td{font-size:.875rem;vertical-align:middle}
-        table.dataTable tbody tr:hover{background:#f5f3ff !important}
-        .dataTables_wrapper .pagination .page-item.active .page-link{background-color:#4f46e5!important;border-color:#4f46e5!important;color:#fff!important}
-        .dataTables_wrapper .pagination .page-link{color:#4f46e5;border-radius:.375rem;margin:0 2px;font-size:.85rem}
-        .dataTables_wrapper .dataTables_info{font-size:.8rem;color:#9ca3af}
-
-        /* ── Sidebar & Overlay Transitions ───────────── */
-        #sidebar {
-            transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-            will-change: transform;
-        }
-        #sidebarOverlay {
-            position: fixed;
-            inset: 0;
-            z-index: 40;
-            background: rgba(0,0,0,0);
-            pointer-events: none;
-            visibility: hidden;
-            transition: background 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        }
-        #sidebarOverlay.active {
-            background: rgba(0,0,0,.55);
-            pointer-events: auto;
-            visibility: visible;
-        }
-        body.sidebar-open { overflow: hidden; }
-
-        /* ── Hamburger Icon Animation ────────────────── */
-        .hamburger {
-            width: 22px;
-            height: 18px;
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 0;
-            border: none;
-            background: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .hamburger .bar {
-            display: block;
-            width: 100%;
-            height: 2.5px;
-            border-radius: 2px;
-            background: #6b7280;
-            transition: transform 0.3s ease-in-out, opacity 0.25s ease-in-out, background 0.3s ease;
-            transform-origin: center;
-        }
-        .hamburger:hover .bar { background: #4f46e5; }
-        .hamburger.is-active .bar:nth-child(1) { transform: translateY(7.75px) rotate(45deg); }
-        .hamburger.is-active .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
-        .hamburger.is-active .bar:nth-child(3) { transform: translateY(-7.75px) rotate(-45deg); }
-
-        /* ── Sidebar link refinements ────────────────── */
-        .sidebar-link {
-            transition: all .2s ease;
-            position: relative;
-        }
-        .sidebar-link:hover { background: rgba(79,70,229,.06); color: #4338ca; }
-        .sidebar-link.active {
-            background: rgba(79,70,229,.1);
-            color: #4338ca;
-            font-weight: 600;
-        }
-        .sidebar-link.active::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 6px;
-            bottom: 6px;
-            width: 3px;
-            border-radius: 3px 0 0 3px;
-            background: #4f46e5;
-        }
-
-        #sidebar.sidebar-visible { box-shadow: 4px 0 24px rgba(0,0,0,.12); }
-    </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen font-sans text-gray-700">
@@ -180,7 +96,7 @@ $menuItems = [
 <div id="mainWrapper" class="min-h-screen flex flex-col">
 
     <!-- Top bar -->
-    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
+    <header class="sticky top-0 z-30 shadow-md h-16 flex items-center justify-between px-4 sm:px-6 shrink-0" style="background:#0b4d26">
         <div class="flex items-center gap-3">
             <!-- Hamburger toggle -->
             <button id="hamburgerBtn" class="hamburger" aria-label="Toggle navigation" aria-expanded="false">
@@ -190,27 +106,27 @@ $menuItems = [
             </button>
             <!-- App branding (always visible) -->
             <div class="flex items-center gap-2.5">
-                <div class="bg-brand-600 text-white w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm" style="background:#f9ba15;color:#0b4d26">
                     <i class="fa-solid fa-building-columns"></i>
                 </div>
                 <div class="leading-tight">
-                    <span class="block text-sm font-bold text-gray-800 tracking-tight">PHO Budgeting</span>
-                    <span class="block text-[10px] text-gray-400">FY 2026</span>
+                    <span class="block text-sm font-bold text-white tracking-tight">PHO Budgeting</span>
+                    <span class="block text-[10px] text-green-200">FY 2026</span>
                 </div>
             </div>
             <!-- Page title separator (hidden on small screens) -->
             <div class="hidden sm:flex items-center gap-3">
-                <span class="text-gray-300">|</span>
-                <h1 class="text-base font-semibold text-gray-600 tracking-tight"><?= e($pageTitle) ?></h1>
+                <span class="text-green-300/50">|</span>
+                <h1 class="text-base font-semibold text-white/90 tracking-tight"><?= e($pageTitle) ?></h1>
             </div>
         </div>
-        <div class="flex items-center gap-3 text-sm text-gray-500">
+        <div class="flex items-center gap-3 text-sm">
             <?php if ($currentRole === 'admin'): ?>
-            <span class="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-medium">
+            <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
                 <i class="fa-solid fa-shield-halved mr-1"></i> Admin
             </span>
             <?php else: ?>
-            <span class="bg-brand-50 text-brand-700 px-3 py-1 rounded-full text-xs font-medium">
+            <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
                 <i class="fa-solid fa-user mr-1"></i> Staff
             </span>
             <?php endif; ?>

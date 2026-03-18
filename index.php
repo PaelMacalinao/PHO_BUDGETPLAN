@@ -59,28 +59,28 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-        <div class="bg-emerald-100 text-emerald-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bullseye text-lg"></i></div>
+        <div class="bg-brand-100 text-brand-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bullseye text-lg"></i></div>
         <div>
             <span class="block text-2xl font-bold text-gray-800"><?= number_format($totalTargets) ?></span>
             <span class="block text-xs text-gray-400">Total Targets</span>
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-        <div class="bg-amber-100 text-amber-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-peso-sign text-lg"></i></div>
+        <div class="bg-accent-50 text-accent-500 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-peso-sign text-lg"></i></div>
         <div>
             <span class="block text-2xl font-bold text-gray-800"><?= peso($totalAllocation) ?></span>
             <span class="block text-xs text-gray-400">Total Allocation</span>
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-        <div class="bg-violet-100 text-violet-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-sitemap text-lg"></i></div>
+        <div class="bg-accent-50 text-accent-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-sitemap text-lg"></i></div>
         <div>
             <span class="block text-2xl font-bold text-gray-800"><?= number_format($uniquePrograms) ?></span>
             <span class="block text-xs text-gray-400">Active Programs</span>
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-        <div class="bg-slate-100 text-slate-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-building text-lg"></i></div>
+        <div class="bg-brand-100 text-brand-700 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-building text-lg"></i></div>
         <div>
             <span class="block text-2xl font-bold text-gray-800"><?= number_format($uniqueUnits) ?></span>
             <span class="block text-xs text-gray-400">Active Units</span>
@@ -135,17 +135,17 @@ require_once __DIR__ . '/includes/header.php';
     <!-- Data Table (single instance) -->
     <div class="px-6 pb-6 pt-2 overflow-x-auto">
         <table id="proposalsTable" class="w-full text-left" style="min-width:1000px">
-            <thead>
-                <tr class="border-b border-gray-200">
-                    <th class="py-3 px-2">ID</th>
-                    <th class="py-3 px-2">PPA Description</th>
-                    <th class="py-3 px-2">Program</th>
-                    <th class="py-3 px-2">Unit</th>
-                    <th class="py-3 px-2">Expense Class</th>
-                    <th class="py-3 px-2">Fund Source</th>
-                    <th class="py-3 px-2 text-right">Target</th>
-                    <th class="py-3 px-2 text-right">Allocation</th>
-                    <th class="py-3 px-2 text-center">Actions</th>
+            <thead class="bg-custom-green text-white" style="background:#0b4d26">
+                <tr>
+                    <th class="py-3 px-2 text-white">ID</th>
+                    <th class="py-3 px-2 text-white">PPA Description</th>
+                    <th class="py-3 px-2 text-white">Program</th>
+                    <th class="py-3 px-2 text-white">Unit</th>
+                    <th class="py-3 px-2 text-white">Expense Class</th>
+                    <th class="py-3 px-2 text-white">Fund Source</th>
+                    <th class="py-3 px-2 text-right text-white">Target</th>
+                    <th class="py-3 px-2 text-right text-white">Allocation</th>
+                    <th class="py-3 px-2 text-center text-white">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -252,7 +252,7 @@ require_once __DIR__ . '/includes/header.php';
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.status === 'success') {
-                    Swal.fire({icon:'success', title:'Deleted!', text: data.message, confirmButtonColor:'#4f46e5'}).then(function() { location.reload(); });
+                    Swal.fire({icon:'success', title:'Deleted!', text: data.message, confirmButtonColor:'#0b4d26'}).then(function() { location.reload(); });
                 } else {
                     Swal.fire({icon:'error', title:'Error', text: data.message, confirmButtonColor:'#ef4444'});
                 }

@@ -120,7 +120,7 @@ document.getElementById('modalForm').addEventListener('submit', async function(e
         const res = await fetch(window.location.href, {method:'POST', body: fd});
         const json = await res.json();
         if (json.status === 'success') {
-            await Swal.fire({icon:'success',title:'Done!',text:json.message,confirmButtonColor:'#4f46e5',timer:1500,showConfirmButton:false});
+            await Swal.fire({icon:'success',title:'Done!',text:json.message,confirmButtonColor:'#0b4d26',timer:1500,showConfirmButton:false});
             location.reload();
         } else Swal.fire({icon:'error',title:'Error',text:json.message,confirmButtonColor:'#ef4444'});
     } catch { Swal.fire({icon:'error',title:'Network Error'}); }
@@ -132,7 +132,7 @@ function deleteRow(id) {
         if (!r.isConfirmed) return;
         const fd = new FormData(); fd.append('action','delete'); fd.append('id',id);
         fetch(window.location.href,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
-            if(d.status==='success'){Swal.fire({icon:'success',title:'Deleted!',text:d.message,confirmButtonColor:'#4f46e5',timer:1500,showConfirmButton:false}).then(()=>location.reload());}
+            if(d.status==='success'){Swal.fire({icon:'success',title:'Deleted!',text:d.message,confirmButtonColor:'#0b4d26',timer:1500,showConfirmButton:false}).then(()=>location.reload());}
             else Swal.fire({icon:'error',title:'Error',text:d.message,confirmButtonColor:'#ef4444'});
         }).catch(()=>Swal.fire({icon:'error',title:'Network Error'}));
     });

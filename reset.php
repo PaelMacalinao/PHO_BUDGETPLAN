@@ -38,13 +38,13 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="max-w-lg mx-auto">
     <?php if ($success): ?>
-    <div class="bg-white rounded-2xl shadow-lg border border-emerald-200 text-center py-12 px-6">
-        <div class="mx-auto w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6">
-            <i class="fa-solid fa-check text-3xl text-emerald-500"></i>
+    <div class="bg-white rounded-2xl shadow-lg text-center py-12 px-6" style="border-top:4px solid #0b4d26">
+        <div class="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6" style="background:#f0faf3">
+            <i class="fa-solid fa-check text-3xl" style="color:#0b4d26"></i>
         </div>
-        <h2 class="text-xl font-bold text-emerald-700 mb-2">Reset Complete</h2>
+        <h2 class="text-xl font-bold mb-2" style="color:#0b4d26">Reset Complete</h2>
         <p class="text-sm text-gray-500 mb-6">All budget proposals have been deleted. The system is ready.</p>
-        <a href="index.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-md">
+        <a href="index.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition shadow-md" style="background:#0b4d26">
             <i class="fa-solid fa-arrow-left text-xs"></i> Back to Dashboard
         </a>
     </div>
@@ -59,7 +59,7 @@ require_once __DIR__ . '/includes/header.php';
         <a href="reset.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition shadow-md mr-2">
             <i class="fa-solid fa-rotate-left text-xs"></i> Try Again
         </a>
-        <a href="index.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Dashboard</a>
+        <a href="index.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition" style="background:#0b4d26">Dashboard</a>
     </div>
 
     <?php else: ?>
@@ -78,7 +78,7 @@ require_once __DIR__ . '/includes/header.php';
                 <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition shadow-md">
                     <i class="fa-solid fa-trash"></i> Yes, Delete All Proposals
                 </button>
-                <a href="index.php" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+                <a href="index.php" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-white text-sm font-medium hover:opacity-90 transition" style="background:#0b4d26">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Cancel
                 </a>
             </form>

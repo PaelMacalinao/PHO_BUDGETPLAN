@@ -53,18 +53,18 @@ require_once __DIR__ . '/includes/header.php';
         <p class="text-sm text-gray-400 mt-0.5">Submitted <?= date('F j, Y \a\t g:i A', strtotime($row['created_at'])) ?></p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-        <span class="inline-flex items-center gap-1.5 bg-brand-50 text-brand-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-sitemap"></i> <?= e($row['program_name']) ?></span>
-        <span class="inline-flex items-center gap-1.5 bg-violet-50 text-violet-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-building"></i> <?= e($row['unit_name']) ?></span>
-        <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-tags"></i> <?= e($row['expense_class']) ?></span>
-        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-coins"></i> <?= e($row['fund_name']) ?></span>
+        <span class="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-sitemap"></i> <?= e($row['program_name']) ?></span>
+        <span class="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-building"></i> <?= e($row['unit_name']) ?></span>
+        <span class="inline-flex items-center gap-1.5 bg-accent-50 text-accent-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-tags"></i> <?= e($row['expense_class']) ?></span>
+        <span class="inline-flex items-center gap-1.5 bg-brand-100 text-brand-600 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-coins"></i> <?= e($row['fund_name']) ?></span>
     </div>
 </div>
 
 <!-- Section 1: Program Details -->
 <div class="bg-white rounded-2xl shadow-md border border-gray-100 mb-6 overflow-hidden">
-    <div class="bg-brand-50 px-6 py-4 border-b border-brand-100 flex items-center gap-3">
-        <div class="bg-brand-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-folder-open"></i></div>
-        <h3 class="text-base font-semibold text-brand-800">Program &amp; Account Details</h3>
+    <div class="px-6 py-4 border-b flex items-center gap-3" style="background:#f0faf3;border-color:#d5f0dc">
+        <div class="text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:#0b4d26"><i class="fa-solid fa-folder-open"></i></div>
+        <h3 class="text-base font-semibold" style="color:#0b4d26">Program &amp; Account Details</h3>
     </div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
         <div class="md:col-span-2">
@@ -88,9 +88,9 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Section 2: Quarterly Targets -->
 <div class="bg-white rounded-2xl shadow-md border border-gray-100 mb-6 overflow-hidden">
-    <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-3">
-        <div class="bg-emerald-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-bullseye"></i></div>
-        <h3 class="text-base font-semibold text-emerald-800">Quarterly Physical Targets</h3>
+    <div class="px-6 py-4 border-b flex items-center gap-3" style="background:#f0faf3;border-color:#d5f0dc">
+        <div class="text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:#0b4d26"><i class="fa-solid fa-bullseye"></i></div>
+        <h3 class="text-base font-semibold" style="color:#0b4d26">Quarterly Physical Targets</h3>
     </div>
     <div class="p-6">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
@@ -113,9 +113,9 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Section 3: Monthly Allocation -->
 <div class="bg-white rounded-2xl shadow-md border border-gray-100 mb-6 overflow-hidden">
-    <div class="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center gap-3">
-        <div class="bg-amber-500 text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-coins"></i></div>
-        <h3 class="text-base font-semibold text-amber-800">Monthly Financial Allocation</h3>
+    <div class="px-6 py-4 border-b flex items-center gap-3" style="background:#fef9e7;border-color:#fdf0c4">
+        <div class="text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:#f9ba15;color:#0b4d26"><i class="fa-solid fa-coins"></i></div>
+        <h3 class="text-base font-semibold" style="color:#8c6607">Monthly Financial Allocation</h3>
     </div>
     <div class="p-6">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-5">
@@ -145,9 +145,9 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Section 4: Justification -->
 <div class="bg-white rounded-2xl shadow-md border border-gray-100 mb-6 overflow-hidden">
-    <div class="bg-violet-50 px-6 py-4 border-b border-violet-100 flex items-center gap-3">
-        <div class="bg-violet-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-file-pen"></i></div>
-        <h3 class="text-base font-semibold text-violet-800">Justification</h3>
+    <div class="px-6 py-4 border-b flex items-center gap-3" style="background:#f0faf3;border-color:#d5f0dc">
+        <div class="text-white w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background:#0b4d26"><i class="fa-solid fa-file-pen"></i></div>
+        <h3 class="text-base font-semibold" style="color:#0b4d26">Justification</h3>
     </div>
     <div class="p-6">
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed whitespace-pre-line"><?= e($row['justification']) ?></div>
@@ -160,7 +160,7 @@ require_once __DIR__ . '/includes/header.php';
         <i class="fa-solid fa-arrow-left text-xs"></i> Back to Dashboard
     </a>
     <div class="flex items-center gap-2">
-        <a href="edit.php?id=<?= (int)$row['id'] ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition shadow-md">
+        <a href="edit.php?id=<?= (int)$row['id'] ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md">
             <i class="fa-solid fa-pen-to-square text-xs"></i> Edit Proposal
         </a>
         <span class="text-xs text-gray-400">Updated: <?= date('M j, Y g:i A', strtotime($row['updated_at'])) ?></span>

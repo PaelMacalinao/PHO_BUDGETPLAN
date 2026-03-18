@@ -98,16 +98,6 @@ if (!$row) {
 }
 ?>
 
-<style>
-    .tab-panel{display:none;animation:fadeSlide .35s ease}
-    .tab-panel.active{display:block}
-    @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .step-dot{transition:all .3s ease}
-    .step-dot.active{background:#4f46e5;color:#fff;box-shadow:0 0 0 4px rgba(79,70,229,.25)}
-    .step-dot.done{background:#10b981;color:#fff}
-    .step-line.done{background:#10b981}
-</style>
-
 <div class="mb-8 text-center">
     <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Edit Budget Proposal <span class="text-brand-600">#<?= (int)$row['id'] ?></span></h2>
     <p class="mt-1 text-sm text-gray-500">Modify the details below and save your changes.</p>
@@ -339,7 +329,7 @@ if (!$row) {
             el.classList.remove('border-red-400','ring-2','ring-red-200');
             if (!el.value.trim()) { el.classList.add('border-red-400','ring-2','ring-red-200'); valid = false; }
         });
-        if (!valid) Swal.fire({icon:'warning',title:'Missing Information',text:'Please fill in all required fields.',confirmButtonColor:'#4f46e5'});
+        if (!valid) Swal.fire({icon:'warning',title:'Missing Information',text:'Please fill in all required fields.',confirmButtonColor:'#0b4d26'});
         return valid;
     }
 
@@ -364,7 +354,7 @@ if (!$row) {
         const conf = await Swal.fire({
             title:'Save Changes?', icon:'question', showCancelButton:true,
             confirmButtonText:'<i class="fa-solid fa-floppy-disk"></i> Save',
-            confirmButtonColor:'#059669', cancelButtonColor:'#6b7280', reverseButtons:true,
+            confirmButtonColor:'#0b4d26', cancelButtonColor:'#6b7280', reverseButtons:true,
         });
         if (!conf.isConfirmed) return;
         btnSubmit.disabled = true;
@@ -373,7 +363,7 @@ if (!$row) {
             const res = await fetch(window.location.href, { method:'POST', body: new FormData(form) });
             const json = await res.json();
             if (json.status === 'success') {
-                await Swal.fire({icon:'success',title:'Updated!',text:json.message,confirmButtonColor:'#059669'});
+                await Swal.fire({icon:'success',title:'Updated!',text:json.message,confirmButtonColor:'#0b4d26'});
                 window.location.href = 'view.php?id=' + json.id;
             } else {
                 Swal.fire({icon:'error',title:'Error',text:json.message,confirmButtonColor:'#ef4444'});

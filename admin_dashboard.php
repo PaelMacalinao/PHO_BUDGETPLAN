@@ -155,7 +155,7 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
     .layer-content.open{overflow:visible}
     .toggle-icon{transition:transform .3s ease;font-size:.7rem}
     .toggle-icon.rotated{transform:rotate(90deg)}
-    .layer1-header:hover{background:rgba(79,70,229,.04)}
+    .layer1-header:hover{background:rgba(11,77,38,.04)}
     .layer2-header:hover{background:rgba(16,185,129,.04)}
     .layer1-header,.layer2-header{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
     .account-group.filtered-out,.ppa-entry.filtered-out{display:none!important}
@@ -172,7 +172,7 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
     .layer3-panel .l3-box{background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;overflow:hidden}
     .layer3-panel .l3-meta-grid{display:grid;grid-template-columns:1fr;gap:.5rem}
     @media(min-width:640px){.layer3-panel .l3-meta-grid{grid-template-columns:1fr 1fr}}
-    .layer3-panel .l3-meta-cell{padding:.6rem .75rem;border-left:3px solid #e0e7ff}
+    .layer3-panel .l3-meta-cell{padding:.6rem .75rem;border-left:3px solid #d5f0dc}
     .layer3-panel table{width:100%;border-collapse:collapse}
     .layer3-panel th{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;background:#f9fafb;border-bottom:2px solid #e5e7eb;padding:.4rem .5rem;text-align:center;white-space:nowrap}
     .layer3-panel td{font-size:.75rem;font-weight:600;color:#374151;padding:.45rem .5rem;text-align:center;white-space:nowrap;border-right:1px solid #f3f4f6}
@@ -182,7 +182,7 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
     .layer3-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:.5rem;border:1px solid #e5e7eb}
     .layer3-scroll::-webkit-scrollbar{height:5px}
     .layer3-scroll::-webkit-scrollbar-track{background:#f3f4f6}
-    .layer3-scroll::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:999px}
+    .layer3-scroll::-webkit-scrollbar-thumb{background:#a8e0b9;border-radius:999px}
     .layer3-scroll::-webkit-scrollbar-thumb:hover{background:#a5b4fc}
     @media(max-width:640px){
         .layer3-grid{grid-template-columns:repeat(3,1fr)!important}
@@ -730,7 +730,7 @@ window.submitEditForm = function() {
     .then(data => {
         if (data.status === 'success') {
             closeEditModal();
-            Swal.fire({ icon:'success', title:'Updated!', text:data.message, confirmButtonColor:'#4f46e5', timer:1500, showConfirmButton:false })
+            Swal.fire({ icon:'success', title:'Updated!', text:data.message, confirmButtonColor:'#0b4d26', timer:1500, showConfirmButton:false })
                 .then(() => location.reload());
         } else {
             Swal.fire({ icon:'error', title:'Error', text:data.message, confirmButtonColor:'#ef4444' });
@@ -774,7 +774,7 @@ window.deleteProposal = function(id) {
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
-                Swal.fire({ icon:'success', title:'Deleted!', text:data.message, confirmButtonColor:'#4f46e5', timer:1500, showConfirmButton:false })
+                Swal.fire({ icon:'success', title:'Deleted!', text:data.message, confirmButtonColor:'#0b4d26', timer:1500, showConfirmButton:false })
                     .then(() => location.reload());
             } else {
                 Swal.fire({ icon:'error', title:'Error', text:data.message, confirmButtonColor:'#ef4444' });

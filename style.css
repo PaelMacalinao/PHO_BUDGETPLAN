@@ -1,0 +1,317 @@
+/* ═══════════════════════════════════════════════════
+   PHO Palawan — Consolidated Branding Stylesheet
+   Primary Dark Green : #0b4d26
+   Accent Gold/Yellow : #f9ba15
+   ═══════════════════════════════════════════════════ */
+
+/* ── Number-input spinner removal ──────────────── */
+input[type="number"] { -moz-appearance: textfield; }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ── Scrollbar ─────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #a8e0b9; border-radius: 4px; }
+
+
+/* ═══════════════════════════════════════════════════
+   1. PRIMARY BUTTONS — Override Bootstrap .btn-primary
+   ═══════════════════════════════════════════════════ */
+.btn-primary,
+.btn-primary:active,
+.btn-primary:focus,
+.btn-primary:focus-visible,
+.btn-primary:active:focus {
+    background-color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+.btn-primary:hover {
+    background-color: #093d1e !important;
+    border-color: #f9ba15 !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(249, 186, 21, .35) !important;
+}
+.btn-primary:disabled,
+.btn-primary.disabled {
+    background-color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+    opacity: .65;
+}
+
+.btn-outline-primary {
+    color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary:focus {
+    background-color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+    color: #fff !important;
+}
+
+.btn-check:checked + .btn-primary,
+.btn-check:active + .btn-primary {
+    background-color: #093d1e !important;
+    border-color: #0b4d26 !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   2. FORM FOCUS RINGS — Inputs, Selects, Textareas
+   ═══════════════════════════════════════════════════ */
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus,
+input.form-control:focus,
+select.form-select:focus {
+    border-color: #0b4d26 !important;
+    box-shadow: 0 0 0 0.25rem rgba(11, 77, 38, 0.25) !important;
+    outline: 0 !important;
+}
+
+.form-check-input:checked {
+    background-color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+}
+.form-check-input:focus {
+    border-color: #0b4d26 !important;
+    box-shadow: 0 0 0 0.25rem rgba(11, 77, 38, 0.25) !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   3. NAV-TABS — Active tab green bottom border
+   ═══════════════════════════════════════════════════ */
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+    color: #0b4d26 !important;
+    font-weight: 700 !important;
+    border-color: transparent transparent #0b4d26 transparent !important;
+    border-bottom: 3px solid #0b4d26 !important;
+    background-color: #fff !important;
+}
+.nav-tabs .nav-link {
+    color: #6b7280 !important;
+    transition: color .2s;
+}
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    color: #0b4d26 !important;
+    border-color: transparent !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   4. DATATABLES — thead, rows, pagination
+   ═══════════════════════════════════════════════════ */
+table.dataTable thead th,
+table.dataTable thead td {
+    font-size: .75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: .05em !important;
+    color: #fff !important;
+    background: #0b4d26 !important;
+    border-bottom: none !important;
+}
+table.dataTable tbody td {
+    font-size: .875rem;
+    vertical-align: middle;
+}
+table.dataTable tbody tr:hover {
+    background: #f0faf3 !important;
+}
+
+/* Pagination — normal links */
+.dataTables_wrapper .pagination .page-link,
+.pagination .page-link {
+    color: #0b4d26 !important;
+    border-radius: .375rem !important;
+    margin: 0 2px;
+    font-size: .85rem;
+    transition: background .2s, color .2s, border-color .2s;
+}
+
+/* Pagination — hover */
+.dataTables_wrapper .pagination .page-link:hover,
+.pagination .page-link:hover {
+    background-color: #f0faf3 !important;
+    color: #073218 !important;
+    border-color: #a8e0b9 !important;
+}
+
+/* Pagination — focus */
+.dataTables_wrapper .pagination .page-link:focus,
+.pagination .page-link:focus {
+    box-shadow: 0 0 0 0.25rem rgba(11, 77, 38, 0.25) !important;
+}
+
+/* Pagination — active page */
+.dataTables_wrapper .pagination .page-item.active .page-link,
+.pagination .page-item.active > .page-link {
+    background-color: #0b4d26 !important;
+    border-color: #0b4d26 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+/* DataTables search input focus */
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #0b4d26 !important;
+    box-shadow: 0 0 0 0.25rem rgba(11, 77, 38, 0.25) !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    font-size: .8rem;
+    color: #9ca3af;
+}
+
+.dataTables_wrapper .dataTables_length select:focus {
+    border-color: #0b4d26 !important;
+    box-shadow: 0 0 0 0.25rem rgba(11, 77, 38, 0.25) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   5. LINKS & MISC BOOTSTRAP OVERRIDES
+   ═══════════════════════════════════════════════════ */
+a.text-primary,
+.text-primary {
+    color: #0b4d26 !important;
+}
+.bg-primary {
+    background-color: #0b4d26 !important;
+}
+.border-primary {
+    border-color: #0b4d26 !important;
+}
+.link-primary {
+    color: #0b4d26 !important;
+}
+.link-primary:hover,
+.link-primary:focus {
+    color: #093d1e !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   6. AUTH CARD (login / register pages)
+   ═══════════════════════════════════════════════════ */
+.auth-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .08);
+    border-top: 4px solid #0b4d26;
+    padding: 2.5rem;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   7. SIDEBAR & OVERLAY
+   ═══════════════════════════════════════════════════ */
+#sidebar {
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    will-change: transform;
+}
+#sidebar.sidebar-visible {
+    box-shadow: 4px 0 24px rgba(0, 0, 0, .12);
+}
+
+#sidebarOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0);
+    pointer-events: none;
+    visibility: hidden;
+    transition: background .3s ease-in-out, visibility .3s ease-in-out;
+}
+#sidebarOverlay.active {
+    background: rgba(0, 0, 0, .55);
+    pointer-events: auto;
+    visibility: visible;
+}
+body.sidebar-open { overflow: hidden; }
+
+/* Sidebar links */
+.sidebar-link {
+    transition: all .2s ease;
+    position: relative;
+}
+.sidebar-link:hover {
+    background: rgba(11, 77, 38, .06);
+    color: #0b4d26;
+}
+.sidebar-link.active {
+    background: rgba(11, 77, 38, .1);
+    color: #0b4d26;
+    font-weight: 600;
+}
+.sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+    background: #0b4d26;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   8. HAMBURGER ICON
+   ═══════════════════════════════════════════════════ */
+.hamburger {
+    width: 22px;
+    height: 18px;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+    border: none;
+    background: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.hamburger .bar {
+    display: block;
+    width: 100%;
+    height: 2.5px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform .3s ease-in-out, opacity .25s ease-in-out, background .3s ease;
+    transform-origin: center;
+}
+.hamburger:hover .bar { background: #f9ba15; }
+.hamburger.is-active .bar:nth-child(1) { transform: translateY(7.75px) rotate(45deg); }
+.hamburger.is-active .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.is-active .bar:nth-child(3) { transform: translateY(-7.75px) rotate(-45deg); }
+
+
+/* ═══════════════════════════════════════════════════
+   9. WIZARD STEP INDICATOR (create / edit)
+   ═══════════════════════════════════════════════════ */
+.tab-panel { display: none; animation: fadeSlide .35s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.step-dot { transition: all .3s ease; }
+.step-dot.active {
+    background: #0b4d26;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(11, 77, 38, .2);
+}
+.step-dot.done { background: #0b4d26; color: #fff; }
+.step-line.done { background: #0b4d26; }

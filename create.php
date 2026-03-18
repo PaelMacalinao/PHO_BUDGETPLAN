@@ -89,16 +89,6 @@ try {
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<style>
-    .tab-panel{display:none;animation:fadeSlide .35s ease}
-    .tab-panel.active{display:block}
-    @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .step-dot{transition:all .3s ease}
-    .step-dot.active{background:#4f46e5;color:#fff;box-shadow:0 0 0 4px rgba(79,70,229,.25)}
-    .step-dot.done{background:#10b981;color:#fff}
-    .step-line.done{background:#10b981}
-</style>
-
 <!-- Page heading -->
 <div class="mb-8 text-center">
     <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">2026 Consolidated Budget Proposal</h2>
@@ -250,7 +240,7 @@ require_once __DIR__ . '/includes/header.php';
         <button type="button" id="btnNext" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 transition shadow-md">
             Next <i class="fa-solid fa-arrow-right text-xs"></i>
         </button>
-        <button type="submit" id="btnSubmit" class="hidden inline-flex items-center gap-2 px-7 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-md">
+        <button type="submit" id="btnSubmit" class="hidden inline-flex items-center gap-2 px-7 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md">
             <i class="fa-solid fa-paper-plane text-xs"></i> Submit Proposal
         </button>
     </div>
@@ -347,7 +337,7 @@ require_once __DIR__ . '/includes/header.php';
                 valid = false;
             }
         });
-        if (!valid) Swal.fire({ icon:'warning', title:'Missing Information', text:'Please fill in all required fields.', confirmButtonColor:'#4f46e5' });
+        if (!valid) Swal.fire({ icon:'warning', title:'Missing Information', text:'Please fill in all required fields.', confirmButtonColor:'#0b4d26' });
         return valid;
     }
 
@@ -382,7 +372,7 @@ require_once __DIR__ . '/includes/header.php';
             showCancelButton: true,
             confirmButtonText: '<i class="fa-solid fa-paper-plane"></i> Yes, Submit',
             cancelButtonText: 'Cancel',
-            confirmButtonColor: '#059669',
+            confirmButtonColor: '#0b4d26',
             cancelButtonColor: '#6b7280',
             reverseButtons: true,
         });
@@ -395,7 +385,7 @@ require_once __DIR__ . '/includes/header.php';
             const res  = await fetch(window.location.href, { method: 'POST', body: new FormData(form) });
             const json = await res.json();
             if (json.status === 'success') {
-                await Swal.fire({ icon:'success', title:'Proposal Saved!', html:`Reference ID: <strong>#${json.id}</strong>`, confirmButtonColor:'#059669' });
+                await Swal.fire({ icon:'success', title:'Proposal Saved!', html:`Reference ID: <strong>#${json.id}</strong>`, confirmButtonColor:'#0b4d26' });
                 window.location.href = 'index.php';
             } else {
                 Swal.fire({ icon:'error', title:'Validation Error', text: json.message, confirmButtonColor:'#ef4444' });
