@@ -211,7 +211,7 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-center gap-3">
         <div class="bg-brand-100 text-brand-600 w-10 h-10 rounded-lg flex items-center justify-center shrink-0"><i class="fa-solid fa-peso-sign text-lg"></i></div>
         <div class="min-w-0">
-            <span class="block text-lg sm:text-xl font-bold text-gray-800 truncate"><?= peso($grandTotal) ?></span>
+            <span class="peso-amount text-lg sm:text-xl font-bold text-gray-800 truncate"><span class="peso-sign">₱</span> <?= number_format($grandTotal, 2) ?></span>
             <span class="block text-[10px] sm:text-xs text-gray-400">Total Budget</span>
         </div>
     </div>
@@ -219,7 +219,7 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-center gap-3">
         <div class="bg-<?= $clr ?>-100 text-<?= $clr ?>-600 w-10 h-10 rounded-lg flex items-center justify-center shrink-0"><i class="fa-solid <?= $ico ?> text-lg"></i></div>
         <div class="min-w-0">
-            <span class="block text-lg sm:text-xl font-bold text-gray-800 truncate"><?= peso($classTotals[$cls] ?? 0) ?></span>
+            <span class="peso-amount text-lg sm:text-xl font-bold text-gray-800 truncate"><span class="peso-sign">₱</span> <?= number_format(($classTotals[$cls] ?? 0), 2) ?></span>
             <span class="block text-[10px] sm:text-xs text-gray-400"><?= $cls ?> — <?= $lbl ?></span>
         </div>
     </div>

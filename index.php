@@ -68,7 +68,7 @@ require_once __DIR__ . '/includes/header.php';
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
         <div class="bg-accent-50 text-accent-500 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-peso-sign text-lg"></i></div>
         <div>
-            <span class="block text-2xl font-bold text-gray-800"><?= peso($totalAllocation) ?></span>
+            <span class="peso-amount text-2xl font-bold text-gray-800"><span class="peso-sign">₱</span> <?= number_format($totalAllocation, 2) ?></span>
             <span class="block text-xs text-gray-400">Total Allocation</span>
         </div>
     </div>

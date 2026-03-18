@@ -202,8 +202,26 @@ a.text-primary,
 
 
 /* ═══════════════════════════════════════════════════
-   6. AUTH CARD (login / register pages)
+   6. PESO AMOUNT — baseline-aligned ₱ + number
    ═══════════════════════════════════════════════════ */
+.peso-amount {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+    line-height: 1;
+}
+.peso-sign {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1;
+    vertical-align: baseline;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   7. AUTH CARD (login / register pages)
+   ═══════════════════════════════════════════════════ */
+
 .auth-card {
     background: #fff;
     border-radius: 1rem;
@@ -214,7 +232,7 @@ a.text-primary,
 
 
 /* ═══════════════════════════════════════════════════
-   7. SIDEBAR & OVERLAY
+   8. SIDEBAR & OVERLAY
    ═══════════════════════════════════════════════════ */
 #sidebar {
     transition: transform .3s cubic-bezier(.4, 0, .2, 1);
@@ -267,7 +285,7 @@ body.sidebar-open { overflow: hidden; }
 
 
 /* ═══════════════════════════════════════════════════
-   8. HAMBURGER ICON
+   9. HAMBURGER ICON
    ═══════════════════════════════════════════════════ */
 .hamburger {
     width: 22px;
@@ -298,7 +316,7 @@ body.sidebar-open { overflow: hidden; }
 
 
 /* ═══════════════════════════════════════════════════
-   9. WIZARD STEP INDICATOR (create / edit)
+   10. WIZARD STEP INDICATOR (create / edit)
    ═══════════════════════════════════════════════════ */
 .tab-panel { display: none; animation: fadeSlide .35s ease; }
 .tab-panel.active { display: block; }
