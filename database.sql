@@ -16,6 +16,23 @@ DROP TABLE IF EXISTS `tbl_programs_units`;
 DROP TABLE IF EXISTS `tbl_units`;
 DROP TABLE IF EXISTS `tbl_fund_sources`;
 DROP TABLE IF EXISTS `tbl_indicators`;
+DROP TABLE IF EXISTS `tbl_users`;
+
+-- ────────────────────────────────────────────────
+-- USERS TABLE (RBAC)
+-- ────────────────────────────────────────────────
+
+CREATE TABLE `tbl_users` (
+  `id`         INT UNSIGNED         NOT NULL AUTO_INCREMENT,
+  `fullname`   VARCHAR(255)         NOT NULL,
+  `username`   VARCHAR(100)         NOT NULL,
+  `password`   VARCHAR(255)         NOT NULL,
+  `role`       ENUM('admin','staff') NOT NULL DEFAULT 'staff',
+  `created_at` DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ────────────────────────────────────────────────
 -- REFERENCE TABLES (Master Data)
@@ -106,6 +123,7 @@ CREATE TABLE `tbl_budget_proposals` (
 
   -- Other
   `justification`    TEXT          NOT NULL,
+  `created_by`       INT UNSIGNED  NULL     DEFAULT NULL,
   `created_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -116,18 +134,24 @@ CREATE TABLE `tbl_budget_proposals` (
   CONSTRAINT `fk_bp_fund_source` FOREIGN KEY (`fund_source_id`) REFERENCES `tbl_fund_sources`(`id`)   ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_indicator`   FOREIGN KEY (`indicator_id`)   REFERENCES `tbl_indicators`(`id`)     ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_unit`        FOREIGN KEY (`unit_id`)        REFERENCES `tbl_units`(`id`)          ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_bp_created_by`  FOREIGN KEY (`created_by`)     REFERENCES `tbl_users`(`id`)          ON UPDATE CASCADE ON DELETE SET NULL,
 
   INDEX `idx_program`     (`program_id`),
   INDEX `idx_account`     (`account_id`),
   INDEX `idx_fund_source` (`fund_source_id`),
   INDEX `idx_indicator`   (`indicator_id`),
   INDEX `idx_unit`        (`unit_id`),
+  INDEX `idx_created_by`  (`created_by`),
   INDEX `idx_created`     (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ────────────────────────────────────────────────
 -- SEED DATA
 -- ────────────────────────────────────────────────
+
+INSERT INTO `tbl_users` (`fullname`, `username`, `password`, `role`) VALUES
+  ('System Administrator', 'admin', '$2y$10$j2/4yo6GmaeaEW.K6XTUXu4tQX.HXtn9Okhw0886He44o9R5bUwty', 'admin'),
+  ('Staff User',           'staff', '$2y$10$D5FagNfUiha.KgPwuh91i.VPAae.nxfUE8UxtFKHCD.owNhWl3ds6', 'staff');
 
 INSERT INTO `tbl_units` (`unit_name`) VALUES
   ('PHO CLINIC'),

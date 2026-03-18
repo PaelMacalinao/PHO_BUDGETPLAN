@@ -4,8 +4,7 @@
  * Truncates the tbl_budget_proposals table.
  */
 require_once __DIR__ . '/config.php';
-
-initSession();
+requireLogin();
 
 $success = false;
 $error   = null;

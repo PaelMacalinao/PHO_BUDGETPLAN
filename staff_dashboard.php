@@ -1,18 +1,16 @@
 <?php
 /**
- * PHO Budgeting System — Dashboard & Budget Proposals List
- * SINGLE RENDER — no loops wrap the layout.
+ * PHO Budgeting System — Staff Dashboard
+ * Same layout as the main dashboard but with View-only actions.
  */
 require_once __DIR__ . '/config.php';
 requireLogin();
 
-$pageTitle  = 'Dashboard';
+$pageTitle  = 'Staff Dashboard';
 $activeMenu = 'dashboard';
 
-// ── FETCH DATA (once, before any HTML) ──────────
 try {
     $pdo = getConnection();
-
     $rows = $pdo->query("
         SELECT bp.id, bp.ppa_description, bp.target_total, bp.total_allocation, bp.created_at,
                pu.program_name,
@@ -44,13 +42,10 @@ $totalAllocation = array_sum(array_column($rows, 'total_allocation'));
 $uniquePrograms  = count(array_unique(array_column($rows, 'program_name')));
 $uniqueUnits     = count($unitNames);
 
-// ── OUTSIDE THE LOOP: Header / Sidebar / Navbar ─
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<!-- ============================================
-     OUTSIDE THE LOOP — Summary Cards (renders ONCE)
-     ============================================ -->
+<!-- Summary Cards -->
 <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
         <div class="bg-brand-100 text-brand-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file-lines text-lg"></i></div>
@@ -89,9 +84,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- ============================================
-     OUTSIDE THE LOOP — Table Card wrapper (renders ONCE)
-     ============================================ -->
+<!-- Table Card -->
 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
 
     <!-- Filter Bar -->
@@ -133,9 +126,8 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <?php if (!empty($rows)): ?>
-    <!-- Data Table (single instance) -->
     <div class="px-6 pb-6 pt-2 overflow-x-auto">
-        <table id="proposalsTable" class="w-full text-left" style="min-width:1000px">
+        <table id="proposalsTable" class="w-full text-left" style="min-width:900px">
             <thead class="bg-custom-green text-white" style="background:#0b4d26">
                 <tr>
                     <th class="py-3 px-2 text-white">ID</th>
@@ -150,9 +142,6 @@ require_once __DIR__ . '/includes/header.php';
                 </tr>
             </thead>
             <tbody>
-                <!-- ========================================
-                     THE LOOP — Only table rows repeat here
-                     ======================================== -->
                 <?php foreach ($rows as $r): ?>
                 <tr class="border-b border-gray-50">
                     <td class="py-3 px-2 font-mono text-xs text-gray-400">#<?= (int)$r['id'] ?></td>
@@ -164,15 +153,10 @@ require_once __DIR__ . '/includes/header.php';
                     <td class="py-3 px-2 text-right font-semibold text-gray-700"><?= number_format((int)$r['target_total']) ?></td>
                     <td class="py-3 px-2 text-right font-semibold text-emerald-700"><?= peso((float)$r['total_allocation']) ?></td>
                     <td class="py-3 px-2 text-center whitespace-nowrap">
-                        <a href="view.php?id=<?= (int)$r['id'] ?>" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 transition" title="View"><i class="fa-solid fa-eye"></i></a>
-                        <a href="edit.php?id=<?= (int)$r['id'] ?>" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
-                        <button onclick="deleteProposal(<?= (int)$r['id'] ?>)" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+                        <a href="view.php?id=<?= (int)$r['id'] ?>" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 transition" title="View"><i class="fa-solid fa-eye"></i> View</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
-                <!-- ========================================
-                     END LOOP — Only table rows were inside
-                     ======================================== -->
             </tbody>
         </table>
     </div>
@@ -188,14 +172,9 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
 </div>
-<!-- ============================================
-     OUTSIDE THE LOOP — Footer (renders ONCE)
-     ============================================ -->
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
-<!-- ============================================
-     OUTSIDE THE LOOP — JavaScript (runs ONCE)
-     ============================================ -->
 <script>
 (function() {
     'use strict';
@@ -232,34 +211,5 @@ require_once __DIR__ . '/includes/header.php';
         $('#filterProgram, #filterUnit, #filterFund, #filterExpense').val('');
         table.search('').columns().search('').draw();
     });
-
-    window.deleteProposal = function(id) {
-        Swal.fire({
-            title: 'Delete Proposal #' + id + '?',
-            text: 'This action cannot be undone.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it',
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            reverseButtons: true
-        }).then(function(r) {
-            if (!r.isConfirmed) return;
-            fetch('delete_proposal.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'id=' + encodeURIComponent(id)
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.status === 'success') {
-                    Swal.fire({icon:'success', title:'Deleted!', text: data.message, confirmButtonColor:'#0b4d26'}).then(function() { location.reload(); });
-                } else {
-                    Swal.fire({icon:'error', title:'Error', text: data.message, confirmButtonColor:'#ef4444'});
-                }
-            })
-            .catch(function() { Swal.fire({icon:'error', title:'Network Error', text:'Could not reach the server.'}); });
-        });
-    };
 })();
 </script>

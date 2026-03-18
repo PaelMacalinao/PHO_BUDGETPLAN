@@ -4,6 +4,7 @@
  * 4-step wizard with auto-computed totals.
  */
 require_once __DIR__ . '/config.php';
+requireLogin();
 
 // ── Handle POST (AJAX) ──────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -42,18 +43,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $submittedTotal = round((float)($_POST['total_allocation'] ?? 0), 2);
         $data['total_allocation'] = $submittedTotal > 0 ? $submittedTotal : round($allocTotal, 2);
 
+        $data['created_by'] = currentUserId();
+
         $sql = "INSERT INTO tbl_budget_proposals
                 (ppa_description, program_id, account_id, fund_source_id, indicator_id, unit_id,
                  q1_target, q2_target, q3_target, q4_target, target_total,
                  jan_amt, feb_amt, mar_amt, apr_amt, may_amt, jun_amt,
                  jul_amt, aug_amt, sep_amt, oct_amt, nov_amt, dec_amt, total_allocation,
-                 justification)
+                 justification, created_by)
                 VALUES
                 (:ppa_description, :program_id, :account_id, :fund_source_id, :indicator_id, :unit_id,
                  :q1_target, :q2_target, :q3_target, :q4_target, :target_total,
                  :jan_amt, :feb_amt, :mar_amt, :apr_amt, :may_amt, :jun_amt,
                  :jul_amt, :aug_amt, :sep_amt, :oct_amt, :nov_amt, :dec_amt, :total_allocation,
-                 :justification)";
+                 :justification, :created_by)";
 
         $stmt = $pdo->prepare($sql);
         $params = [];

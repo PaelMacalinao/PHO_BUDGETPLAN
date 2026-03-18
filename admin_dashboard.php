@@ -4,7 +4,7 @@
  * 3-Layer Drill-Down Budget Overview with Role-Based UI.
  */
 require_once __DIR__ . '/config.php';
-initSession();
+requireLogin();
 
 // ── Role toggle via GET ─────────────────────────
 if (isset($_GET['set_role']) && in_array($_GET['set_role'], ['admin', 'staff'], true)) {

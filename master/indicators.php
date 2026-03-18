@@ -3,6 +3,7 @@
  * Master Data CRUD — Performance Indicators
  */
 require_once __DIR__ . '/../config.php';
+requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json; charset=utf-8');

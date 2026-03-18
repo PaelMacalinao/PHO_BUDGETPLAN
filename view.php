@@ -3,6 +3,7 @@
  * PHO Budgeting System — View Budget Proposal (read-only)
  */
 require_once __DIR__ . '/config.php';
+requireLogin();
 
 $id  = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $row = null;

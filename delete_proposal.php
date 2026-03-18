@@ -3,6 +3,7 @@
  * AJAX handler — Delete a budget proposal.
  */
 require_once __DIR__ . '/config.php';
+requireLogin();
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

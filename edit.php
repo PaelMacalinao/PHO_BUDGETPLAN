@@ -4,6 +4,7 @@
  * Same wizard layout as create.php but pre-populated with existing data.
  */
 require_once __DIR__ . '/config.php';
+requireLogin();
 
 $id  = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $row = null;

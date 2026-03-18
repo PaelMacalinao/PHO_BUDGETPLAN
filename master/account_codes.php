@@ -3,6 +3,7 @@
  * Master Data CRUD — Account Codes
  */
 require_once __DIR__ . '/../config.php';
+requireLogin();
 
 // ── AJAX Handlers ────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

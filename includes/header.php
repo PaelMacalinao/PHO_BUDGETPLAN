@@ -8,6 +8,8 @@ $activeMenu = $activeMenu ?? 'dashboard';
 
 initSession();
 $currentRole = getUserRole();
+$currentName = currentFullname();
+$isLoggedIn  = !empty($_SESSION['user_id']);
 
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 if (basename($base) === 'master') $base = dirname($base);
@@ -15,17 +17,27 @@ $base = rtrim($base, '/\\');
 
 $menuItems = [
     ['section' => 'MAIN'],
-    ['key' => 'dashboard',       'label' => 'Dashboard',        'icon' => 'fa-chart-pie',    'href' => $base . '/index.php'],
-    ['key' => 'admin_dashboard', 'label' => 'Budget Overview',  'icon' => 'fa-layer-group',  'href' => $base . '/admin_dashboard.php'],
-    ['section' => 'PROPOSALS'],
-    ['key' => 'create',          'label' => 'New Proposal',     'icon' => 'fa-plus-circle',  'href' => $base . '/create.php'],
-    ['section' => 'MASTER DATA'],
-    ['key' => 'account_codes', 'label' => 'Account Codes',   'icon' => 'fa-barcode',      'href' => $base . '/master/account_codes.php'],
-    ['key' => 'programs',      'label' => 'Programs (PPA)',    'icon' => 'fa-sitemap',     'href' => $base . '/master/programs.php'],
-    ['key' => 'units',         'label' => 'Units',             'icon' => 'fa-building',    'href' => $base . '/master/units.php'],
-    ['key' => 'fund_sources',  'label' => 'Fund Sources',     'icon' => 'fa-wallet',      'href' => $base . '/master/fund_sources.php'],
-    ['key' => 'indicators',    'label' => 'Indicators',       'icon' => 'fa-gauge-high',  'href' => $base . '/master/indicators.php'],
+    ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-chart-pie',
+     'href' => $base . ($currentRole === 'admin' ? '/index.php' : '/staff_dashboard.php')],
 ];
+
+if ($currentRole === 'admin') {
+    $menuItems[] = ['key' => 'admin_dashboard', 'label' => 'Budget Overview', 'icon' => 'fa-layer-group', 'href' => $base . '/admin_dashboard.php'];
+}
+
+$menuItems[] = ['section' => 'PROPOSALS'];
+$menuItems[] = ['key' => 'create', 'label' => 'New Proposal', 'icon' => 'fa-plus-circle', 'href' => $base . '/create.php'];
+
+if ($currentRole === 'admin') {
+    $menuItems = array_merge($menuItems, [
+        ['section' => 'MASTER DATA'],
+        ['key' => 'account_codes', 'label' => 'Account Codes', 'icon' => 'fa-barcode',    'href' => $base . '/master/account_codes.php'],
+        ['key' => 'programs',      'label' => 'Programs (PPA)', 'icon' => 'fa-sitemap',    'href' => $base . '/master/programs.php'],
+        ['key' => 'units',         'label' => 'Units',          'icon' => 'fa-building',   'href' => $base . '/master/units.php'],
+        ['key' => 'fund_sources',  'label' => 'Fund Sources',   'icon' => 'fa-wallet',     'href' => $base . '/master/fund_sources.php'],
+        ['key' => 'indicators',    'label' => 'Indicators',     'icon' => 'fa-gauge-high', 'href' => $base . '/master/indicators.php'],
+    ]);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -121,6 +133,10 @@ $menuItems = [
             </div>
         </div>
         <div class="flex items-center gap-3 text-sm">
+            <?php if ($isLoggedIn): ?>
+            <span class="hidden sm:inline text-white/80 text-xs">
+                <i class="fa-solid fa-user-circle mr-1"></i> <?= e($currentName) ?>
+            </span>
             <?php if ($currentRole === 'admin'): ?>
             <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
                 <i class="fa-solid fa-shield-halved mr-1"></i> Admin
@@ -129,6 +145,10 @@ $menuItems = [
             <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
                 <i class="fa-solid fa-user mr-1"></i> Staff
             </span>
+            <?php endif; ?>
+            <a href="<?= $base ?>/logout.php" class="text-white/70 hover:text-white transition text-xs" title="Sign out">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
             <?php endif; ?>
         </div>
     </header>
