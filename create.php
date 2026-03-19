@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (PDOException $e) {
         error_log('DB Error: ' . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'A database error occurred.']);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
 }

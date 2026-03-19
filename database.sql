@@ -96,7 +96,6 @@ CREATE TABLE `tbl_budget_proposals` (
   `ppa_description`  TEXT          NOT NULL COMMENT 'Program / Project / Activity description',
 
   -- Foreign Keys
-  `program_id`       INT UNSIGNED  NOT NULL,
   `account_id`       INT UNSIGNED  NOT NULL,
   `fund_source_id`   INT UNSIGNED  NOT NULL,
   `indicator_id`     INT UNSIGNED  NOT NULL,
@@ -132,14 +131,12 @@ CREATE TABLE `tbl_budget_proposals` (
 
   PRIMARY KEY (`id`),
 
-  CONSTRAINT `fk_bp_program`     FOREIGN KEY (`program_id`)     REFERENCES `tbl_programs_units`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_account`     FOREIGN KEY (`account_id`)     REFERENCES `tbl_account_codes`(`id`)  ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_fund_source` FOREIGN KEY (`fund_source_id`) REFERENCES `tbl_fund_sources`(`id`)   ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_indicator`   FOREIGN KEY (`indicator_id`)   REFERENCES `tbl_indicators`(`id`)     ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_unit`        FOREIGN KEY (`unit_id`)        REFERENCES `tbl_units`(`id`)          ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_bp_created_by`  FOREIGN KEY (`created_by`)     REFERENCES `tbl_users`(`id`)          ON UPDATE CASCADE ON DELETE SET NULL,
 
-  INDEX `idx_program`     (`program_id`),
   INDEX `idx_account`     (`account_id`),
   INDEX `idx_fund_source` (`fund_source_id`),
   INDEX `idx_indicator`   (`indicator_id`),

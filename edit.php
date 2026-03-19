@@ -82,7 +82,7 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         http_response_code(500);
         header('Content-Type: application/json');
-        echo json_encode(['status'=>'error','message'=>'A database error occurred.']);
+        echo json_encode(['status'=>'error','message'=>$e->getMessage()]);
         exit;
     }
     $row = null;
