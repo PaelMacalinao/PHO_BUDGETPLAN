@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_action'] ?? '') === 'upda
             $data[$f] = trim($_POST[$f] ?? '');
             if ($data[$f] === '') throw new InvalidArgumentException("'" . str_replace('_', ' ', $f) . "' is required.");
         }
-        foreach (['program_id', 'account_id', 'fund_source_id', 'indicator_id', 'unit_id'] as $f) {
+        foreach (['account_id', 'fund_source_id', 'indicator_id', 'unit_id'] as $f) {
             $data[$f] = (int)($_POST[$f] ?? 0);
             if ($data[$f] < 1) throw new InvalidArgumentException("Please select a valid " . str_replace('_id', '', $f) . ".");
         }
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_action'] ?? '') === 'upda
         $data['total_allocation'] = round($at, 2);
 
         $sql = "UPDATE tbl_budget_proposals SET
-                    ppa_description=:ppa_description, program_id=:program_id, account_id=:account_id,
+                    ppa_description=:ppa_description, account_id=:account_id,
                     fund_source_id=:fund_source_id, indicator_id=:indicator_id, unit_id=:unit_id,
                     q1_target=:q1_target, q2_target=:q2_target, q3_target=:q3_target, q4_target=:q4_target, target_total=:target_total,
                     jan_amt=:jan_amt, feb_amt=:feb_amt, mar_amt=:mar_amt, apr_amt=:apr_amt, may_amt=:may_amt, jun_amt=:jun_amt,
@@ -91,27 +91,23 @@ try {
     $rows = $pdo->query("
         SELECT bp.*,
                ac.account_code, ac.account_title, ac.expense_class,
-               pu.program_name,
                fs.fund_name,
                ind.indicator_description,
                un.unit_name
         FROM   tbl_budget_proposals bp
-        JOIN   tbl_programs_units pu  ON bp.program_id     = pu.id
         JOIN   tbl_account_codes  ac  ON bp.account_id     = ac.id
         JOIN   tbl_fund_sources   fs  ON bp.fund_source_id = fs.id
         JOIN   tbl_indicators     ind ON bp.indicator_id   = ind.id
         JOIN   tbl_units          un  ON bp.unit_id        = un.id
         ORDER BY ac.expense_class, ac.account_code, bp.ppa_description
     ")->fetchAll();
-
-    $programs   = $pdo->query("SELECT id, program_name FROM tbl_programs_units ORDER BY program_name")->fetchAll();
     $accounts   = $pdo->query("SELECT id, account_code, account_title, expense_class FROM tbl_account_codes ORDER BY account_code")->fetchAll();
     $fundSrcs   = $pdo->query("SELECT id, fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll();
     $indicators = $pdo->query("SELECT id, indicator_description FROM tbl_indicators ORDER BY id")->fetchAll();
     $units      = $pdo->query("SELECT id, unit_name FROM tbl_units ORDER BY unit_name")->fetchAll();
 } catch (PDOException $e) {
     error_log('DB Error: ' . $e->getMessage());
-    $rows = $programs = $accounts = $fundSrcs = $indicators = $units = [];
+    $rows = $accounts = $fundSrcs = $indicators = $units = [];
 }
 
 // ── Group rows by account_id → Layer 1 ──────────
@@ -243,13 +239,6 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
         </select>
     </div>
     <div class="flex-1">
-        <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Program (PPA)</label>
-        <select id="fProgram" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
-            <option value="">All Programs</option>
-            <?php foreach ($programs as $p): ?><option value="<?= e($p['program_name']) ?>"><?= e($p['program_name']) ?></option><?php endforeach; ?>
-        </select>
-    </div>
-    <div class="flex-1">
         <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Unit</label>
         <select id="fUnit" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
             <option value="">All Units</option>
@@ -300,7 +289,7 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
         <?php foreach ($grp['proposals'] as $pi => $p): ?>
 
             <!-- ═══ LAYER 2: PPA Entry ═══ -->
-            <div class="ppa-entry border-b border-gray-50 last:border-b-0" data-fund="<?= e($p['fund_name']) ?>" data-program="<?= e($p['program_name']) ?>" data-unit="<?= e($p['unit_name']) ?>" data-alloc="<?= (float)$p['total_allocation'] ?>">
+            <div class="ppa-entry border-b border-gray-50 last:border-b-0" data-fund="<?= e($p['fund_name']) ?>" data-unit="<?= e($p['unit_name']) ?>" data-alloc="<?= (float)$p['total_allocation'] ?>">
 
                 <!-- Layer 2 Header -->
                 <div class="layer2-header flex items-center justify-between px-4 sm:px-5 pl-8 sm:pl-10 py-3.5 gap-3" onclick="toggleLayer(this)">
@@ -309,7 +298,6 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
                         <div class="min-w-0">
                             <span class="block text-sm font-medium text-gray-800 truncate"><?= e($p['ppa_description']) ?></span>
                             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <span class="text-[10px] text-gray-400"><i class="fa-solid fa-sitemap mr-0.5"></i><?= e($p['program_name']) ?></span>
                                 <span class="text-[10px] text-violet-500"><i class="fa-solid fa-building mr-0.5"></i><?= e($p['unit_name']) ?></span>
                                 <span class="text-[10px] text-gray-400"><i class="fa-solid fa-wallet mr-0.5"></i><?= e($p['fund_name']) ?></span>
                             </div>
@@ -430,14 +418,6 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
 
             <!-- Dropdowns Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Program (PPA) <span class="text-red-500">*</span></label>
-                    <select name="program_id" id="eProgram" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
-                        <option value="">— Select —</option>
-                        <?php foreach ($programs as $p): ?><option value="<?= (int)$p['id'] ?>"><?= e($p['program_name']) ?></option><?php endforeach; ?>
-                    </select>
-                    <p class="field-error-msg" data-for="eProgram">Program is required.</p>
-                </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Unit <span class="text-red-500">*</span></label>
                     <select name="unit_id" id="eUnit" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
@@ -565,13 +545,11 @@ window.toggleLayer = function(header) {
 // ══════════════════════════════════════════════════
 const fExpense = document.getElementById('fExpense');
 const fFund    = document.getElementById('fFund');
-const fProgram = document.getElementById('fProgram');
 const fUnit    = document.getElementById('fUnit');
 
 function applyFilters() {
     const expVal  = fExpense.value;
     const fundVal = fFund.value;
-    const progVal = fProgram.value;
     const unitVal = fUnit.value;
 
     document.querySelectorAll('.account-group').forEach(group => {
@@ -585,9 +563,8 @@ function applyFilters() {
         let visibleCount = 0;
         group.querySelectorAll('.ppa-entry').forEach(ppa => {
             const matchFund = !fundVal || ppa.dataset.fund === fundVal;
-            const matchProg = !progVal || ppa.dataset.program === progVal;
             const matchUnit = !unitVal || ppa.dataset.unit === unitVal;
-            if (matchFund && matchProg && matchUnit) {
+            if (matchFund && matchUnit) {
                 ppa.classList.remove('filtered-out');
                 visibleCount++;
             } else {
@@ -601,11 +578,10 @@ function applyFilters() {
 
 fExpense.addEventListener('change', applyFilters);
 fFund.addEventListener('change', applyFilters);
-fProgram.addEventListener('change', applyFilters);
 fUnit.addEventListener('change', applyFilters);
 
 window.resetFilters = function() {
-    fExpense.value = fFund.value = fProgram.value = fUnit.value = '';
+    fExpense.value = fFund.value = fUnit.value = '';
     applyFilters();
 };
 
@@ -624,7 +600,6 @@ window.openEditModal = function(data) {
     // Populate fields
     document.getElementById('eId').value            = data.id;
     document.getElementById('ePpa').value           = data.ppa_description;
-    document.getElementById('eProgram').value       = data.program_id;
     document.getElementById('eUnit').value          = data.unit_id;
     document.getElementById('eAccount').value       = data.account_id;
     document.getElementById('eFund').value          = data.fund_source_id;
@@ -681,7 +656,6 @@ window.submitEditForm = function() {
 
     const required = [
         { id: 'ePpa',          label: 'PPA Description' },
-        { id: 'eProgram',      label: 'Program' },
         { id: 'eUnit',         label: 'Unit' },
         { id: 'eAccount',      label: 'Account Code' },
         { id: 'eFund',         label: 'Fund Source' },

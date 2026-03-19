@@ -13,33 +13,29 @@ try {
     $pdo = getConnection();
     $rows = $pdo->query("
         SELECT bp.id, bp.ppa_description, bp.target_total, bp.total_allocation, bp.created_at,
-               pu.program_name,
                ac.account_code, ac.account_title, ac.expense_class,
                fs.fund_name,
                un.unit_name
         FROM   tbl_budget_proposals bp
-        JOIN   tbl_programs_units pu ON bp.program_id     = pu.id
         JOIN   tbl_account_codes ac  ON bp.account_id     = ac.id
         JOIN   tbl_fund_sources  fs  ON bp.fund_source_id = fs.id
         JOIN   tbl_units         un  ON bp.unit_id        = un.id
         ORDER BY bp.created_at DESC
     ")->fetchAll();
 
-    $programs    = $pdo->query("SELECT DISTINCT program_name FROM tbl_programs_units ORDER BY program_name")->fetchAll(PDO::FETCH_COLUMN);
     $fundSources = $pdo->query("SELECT DISTINCT fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll(PDO::FETCH_COLUMN);
     $unitNames   = $pdo->query("SELECT DISTINCT unit_name FROM tbl_units ORDER BY unit_name")->fetchAll(PDO::FETCH_COLUMN);
     $expClasses  = ['MOOE', 'CO', 'PS'];
 } catch (PDOException $e) {
     error_log('DB Error: ' . $e->getMessage());
     $rows = [];
-    $programs = $fundSources = $unitNames = $expClasses = [];
+    $fundSources = $unitNames = $expClasses = [];
     $dbError = true;
 }
 
 $totalProposals  = count($rows);
 $totalTargets    = array_sum(array_column($rows, 'target_total'));
 $totalAllocation = array_sum(array_column($rows, 'total_allocation'));
-$uniquePrograms  = count(array_unique(array_column($rows, 'program_name')));
 $uniqueUnits     = count($unitNames);
 
 require_once __DIR__ . '/includes/header.php';
@@ -69,10 +65,10 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-        <div class="bg-accent-50 text-accent-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-sitemap text-lg"></i></div>
+        <div class="bg-accent-50 text-accent-600 w-11 h-11 rounded-lg flex items-center justify-center"><i class="fa-solid fa-coins text-lg"></i></div>
         <div>
-            <span class="block text-2xl font-bold text-gray-800"><?= number_format($uniquePrograms) ?></span>
-            <span class="block text-xs text-gray-400">Active Programs</span>
+            <span class="block text-2xl font-bold text-gray-800"><?= count($fundSources) ?></span>
+            <span class="block text-xs text-gray-400">Fund Sources</span>
         </div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
@@ -90,13 +86,6 @@ require_once __DIR__ . '/includes/header.php';
     <!-- Filter Bar -->
     <div class="px-6 pt-6 pb-2 flex flex-col lg:flex-row lg:items-end gap-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-end gap-4 flex-1">
-            <div>
-                <label for="filterProgram" class="block text-xs font-medium text-gray-500 mb-1">Program (PPA)</label>
-                <select id="filterProgram" class="w-full sm:w-64 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">All Programs</option>
-                    <?php foreach ($programs as $p): ?><option value="<?= e($p) ?>"><?= e($p) ?></option><?php endforeach; ?>
-                </select>
-            </div>
             <div>
                 <label for="filterUnit" class="block text-xs font-medium text-gray-500 mb-1">Unit</label>
                 <select id="filterUnit" class="w-full sm:w-52 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
@@ -132,7 +121,6 @@ require_once __DIR__ . '/includes/header.php';
                 <tr>
                     <th class="py-3 px-2 text-white">ID</th>
                     <th class="py-3 px-2 text-white">PPA Description</th>
-                    <th class="py-3 px-2 text-white">Program</th>
                     <th class="py-3 px-2 text-white">Unit</th>
                     <th class="py-3 px-2 text-white">Expense Class</th>
                     <th class="py-3 px-2 text-white">Fund Source</th>
@@ -146,7 +134,6 @@ require_once __DIR__ . '/includes/header.php';
                 <tr class="border-b border-gray-50">
                     <td class="py-3 px-2 font-mono text-xs text-gray-400">#<?= (int)$r['id'] ?></td>
                     <td class="py-3 px-2 font-medium text-gray-800 max-w-xs truncate"><?= e($r['ppa_description']) ?></td>
-                    <td class="py-3 px-2"><span class="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['program_name']) ?></span></td>
                     <td class="py-3 px-2"><span class="inline-block bg-violet-50 text-violet-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['unit_name']) ?></span></td>
                     <td class="py-3 px-2"><span class="inline-block bg-amber-50 text-amber-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['expense_class']) ?></span></td>
                     <td class="py-3 px-2"><span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['fund_name']) ?></span></td>
@@ -192,23 +179,22 @@ require_once __DIR__ . '/includes/header.php';
             emptyTable: 'No matching proposals found.'
         },
         columnDefs: [
-            { orderable: false, targets: [8] },
+            { orderable: false, targets: [7] },
             { className: 'whitespace-nowrap', targets: '_all' }
         ]
     });
 
     function applyFilters() {
         var esc = $.fn.dataTable.util.escapeRegex;
-        table.column(2).search($('#filterProgram').val() ? '^' + esc($('#filterProgram').val()) + '$' : '', true, false);
-        table.column(3).search($('#filterUnit').val()    ? '^' + esc($('#filterUnit').val())    + '$' : '', true, false);
-        table.column(4).search($('#filterExpense').val() ? '^' + esc($('#filterExpense').val()) + '$' : '', true, false);
-        table.column(5).search($('#filterFund').val()    ? '^' + esc($('#filterFund').val())    + '$' : '', true, false);
+        table.column(2).search($('#filterUnit').val()    ? '^' + esc($('#filterUnit').val())    + '$' : '', true, false);
+        table.column(3).search($('#filterExpense').val() ? '^' + esc($('#filterExpense').val()) + '$' : '', true, false);
+        table.column(4).search($('#filterFund').val()    ? '^' + esc($('#filterFund').val())    + '$' : '', true, false);
         table.draw();
     }
 
-    $('#filterProgram, #filterUnit, #filterFund, #filterExpense').on('change', applyFilters);
+    $('#filterUnit, #filterFund, #filterExpense').on('change', applyFilters);
     $('#btnReset').on('click', function() {
-        $('#filterProgram, #filterUnit, #filterFund, #filterExpense').val('');
+        $('#filterUnit, #filterFund, #filterExpense').val('');
         table.search('').columns().search('').draw();
     });
 })();

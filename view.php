@@ -12,10 +12,9 @@ if ($id) {
     try {
         $pdo  = getConnection();
         $stmt = $pdo->prepare("
-            SELECT bp.*, pu.program_name, ac.account_code, ac.account_title, ac.expense_class,
+            SELECT bp.*, ac.account_code, ac.account_title, ac.expense_class,
                    fs.fund_name, ind.indicator_description, un.unit_name
             FROM   tbl_budget_proposals bp
-            JOIN   tbl_programs_units pu  ON bp.program_id     = pu.id
             JOIN   tbl_account_codes ac   ON bp.account_id     = ac.id
             JOIN   tbl_fund_sources  fs   ON bp.fund_source_id = fs.id
             JOIN   tbl_indicators    ind  ON bp.indicator_id   = ind.id
@@ -54,7 +53,6 @@ require_once __DIR__ . '/includes/header.php';
         <p class="text-sm text-gray-400 mt-0.5">Submitted <?= date('F j, Y \a\t g:i A', strtotime($row['created_at'])) ?></p>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-        <span class="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-sitemap"></i> <?= e($row['program_name']) ?></span>
         <span class="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-building"></i> <?= e($row['unit_name']) ?></span>
         <span class="inline-flex items-center gap-1.5 bg-accent-50 text-accent-700 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-tags"></i> <?= e($row['expense_class']) ?></span>
         <span class="inline-flex items-center gap-1.5 bg-brand-100 text-brand-600 text-xs font-medium px-3 py-1.5 rounded-full"><i class="fa-solid fa-coins"></i> <?= e($row['fund_name']) ?></span>
