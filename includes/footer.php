@@ -70,5 +70,18 @@
 })();
 </script>
 
+<!-- Version Selector Controller -->
+<script>
+(function() {
+    var sel = document.getElementById('globalVersionSelect');
+    if (!sel) return;
+    sel.addEventListener('change', function() {
+        var url = new URL(window.location.href);
+        url.searchParams.set('version', this.value);
+        window.location.href = url.toString();
+    });
+})();
+</script>
+
 </body>
 </html>

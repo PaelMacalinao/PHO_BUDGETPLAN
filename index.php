@@ -13,26 +13,33 @@ requireLogin();
 $pageTitle  = 'Dashboard';
 $activeMenu = 'dashboard';
 
+$versionId = getSelectedVersionId();
+
 try {
     $pdo = getConnection();
 
-    $overallRow = $pdo->query("
+    $stmtOverall = $pdo->prepare("
         SELECT COUNT(id)                          AS total_proposals,
                COALESCE(SUM(total_allocation), 0) AS grand_total
         FROM   tbl_budget_proposals
-    ")->fetch();
+        WHERE  version_id = :vid
+    ");
+    $stmtOverall->execute([':vid' => $versionId]);
+    $overallRow = $stmtOverall->fetch();
 
-    $fundTotals = $pdo->query("
+    $stmtFund = $pdo->prepare("
         SELECT fs.fund_name,
                COUNT(bp.id)                          AS proposal_count,
                COALESCE(SUM(bp.total_allocation), 0) AS fund_total
         FROM   tbl_fund_sources fs
-        LEFT JOIN tbl_budget_proposals bp ON bp.fund_source_id = fs.id
+        LEFT JOIN tbl_budget_proposals bp ON bp.fund_source_id = fs.id AND bp.version_id = :vid
         GROUP BY fs.id, fs.fund_name
         ORDER BY fs.id
-    ")->fetchAll();
+    ");
+    $stmtFund->execute([':vid' => $versionId]);
+    $fundTotals = $stmtFund->fetchAll();
 
-    $gfByClass = $pdo->query("
+    $stmtGf = $pdo->prepare("
         SELECT ac.expense_class,
                COUNT(bp.id)                          AS proposal_count,
                COALESCE(SUM(bp.total_allocation), 0) AS class_total
@@ -40,11 +47,14 @@ try {
         JOIN   tbl_account_codes ac ON bp.account_id     = ac.id
         JOIN   tbl_fund_sources  fs ON bp.fund_source_id = fs.id
         WHERE  fs.fund_name = 'General Fund'
+          AND  bp.version_id = :vid
         GROUP BY ac.expense_class
         ORDER BY FIELD(ac.expense_class, 'PS', 'MOOE', 'CO')
-    ")->fetchAll();
+    ");
+    $stmtGf->execute([':vid' => $versionId]);
+    $gfByClass = $stmtGf->fetchAll();
 
-    $spByProject = $pdo->query("
+    $stmtSp = $pdo->prepare("
         SELECT un.unit_name AS project_name,
                ac.expense_class,
                COUNT(bp.id)                          AS proposal_count,
@@ -54,9 +64,12 @@ try {
         JOIN   tbl_account_codes ac ON bp.account_id     = ac.id
         JOIN   tbl_fund_sources  fs ON bp.fund_source_id = fs.id
         WHERE  fs.fund_name = 'Special Project'
+          AND  bp.version_id = :vid
         GROUP BY un.unit_name, ac.expense_class
         ORDER BY un.unit_name, FIELD(ac.expense_class, 'MOOE', 'CO', 'PS')
-    ")->fetchAll();
+    ");
+    $stmtSp->execute([':vid' => $versionId]);
+    $spByProject = $stmtSp->fetchAll();
 
 } catch (PDOException $e) {
     error_log('Dashboard DB Error: ' . $e->getMessage());
@@ -132,7 +145,7 @@ require_once __DIR__ . '/includes/header.php';
 </style>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-    <div><p class="text-sm text-gray-500">High-Level Financial Overview — FY 2026</p></div>
+    <div><p class="text-sm text-gray-500">High-Level Financial Overview — <?= e(getSelectedVersionName()) ?></p></div>
     <a href="create.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md whitespace-nowrap">
         <i class="fa-solid fa-plus text-xs"></i> New Proposal
     </a>
@@ -219,7 +232,7 @@ require_once __DIR__ . '/includes/header.php';
             $count = $gfClasses[$cls]['count'];
             $pct   = $gfTotal > 0 ? round(($total / $gfTotal) * 100, 1) : 0;
         ?>
-        <div class="exp-card bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <a href="admin_dashboard.php?expense=<?= urlencode($cls) ?>&fund=<?= urlencode('General Fund') ?>" class="exp-card bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden block group">
             <div class="border-l-4 <?= $ci['border'] ?> p-5 sm:p-6">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="<?= $ci['iconBg'] ?> <?= $ci['iconText'] ?> w-11 h-11 rounded-lg flex items-center justify-center shrink-0">
@@ -240,8 +253,12 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <span class="text-xs font-bold text-gray-500 w-12 text-right"><?= $pct ?>%</span>
                 </div>
+                <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span class="text-xs text-gray-400 group-hover:text-brand-600 transition">View in Budget Overview</span>
+                    <i class="fa-solid fa-arrow-right text-xs text-gray-300 group-hover:text-brand-600 group-hover:translate-x-1 transition-all"></i>
+                </div>
             </div>
-        </div>
+        </a>
         <?php endforeach; ?>
     </div>
 
@@ -295,15 +312,16 @@ require_once __DIR__ . '/includes/header.php';
                         $ci = $classInfo[$cls];
                         $clsPct = $projData['total'] > 0 ? round(($amt / $projData['total']) * 100, 1) : 0;
                     ?>
-                    <div class="flex items-center gap-3 px-4 py-3 rounded-lg <?= $ci['bg'] ?> border-l-4 <?= $ci['border'] ?>">
+                    <a href="admin_dashboard.php?expense=<?= urlencode($cls) ?>&fund=<?= urlencode('Special Project') ?>&unit=<?= urlencode($projName) ?>" class="flex items-center gap-3 px-4 py-3 rounded-lg <?= $ci['bg'] ?> border-l-4 <?= $ci['border'] ?> hover:shadow-md hover:scale-[1.02] transition-all group">
                         <div class="<?= $ci['iconBg'] ?> <?= $ci['iconText'] ?> w-9 h-9 rounded-lg flex items-center justify-center shrink-0">
                             <i class="fa-solid <?= $ci['icon'] ?> text-sm"></i>
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <span class="block text-xs font-semibold text-gray-500"><?= $cls ?> <span class="text-gray-400 font-normal">· <?= $clsPct ?>%</span></span>
                             <span class="block text-base font-bold <?= $ci['text'] ?>">₱ <?= number_format($amt, 2) ?></span>
                         </div>
-                    </div>
+                        <i class="fa-solid fa-arrow-right text-xs text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all shrink-0"></i>
+                    </a>
                     <?php endforeach; ?>
                 </div>
             </div>

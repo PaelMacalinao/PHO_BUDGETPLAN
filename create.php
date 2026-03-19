@@ -44,15 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data['total_allocation'] = $submittedTotal > 0 ? $submittedTotal : round($allocTotal, 2);
 
         $data['created_by'] = currentUserId();
+        $data['version_id'] = getSelectedVersionId();
 
         $sql = "INSERT INTO tbl_budget_proposals
-                (ppa_description, account_id, fund_source_id, indicator_id, unit_id,
+                (version_id, ppa_description, account_id, fund_source_id, indicator_id, unit_id,
                  q1_target, q2_target, q3_target, q4_target, target_total,
                  jan_amt, feb_amt, mar_amt, apr_amt, may_amt, jun_amt,
                  jul_amt, aug_amt, sep_amt, oct_amt, nov_amt, dec_amt, total_allocation,
                  justification, created_by)
                 VALUES
-                (:ppa_description, :account_id, :fund_source_id, :indicator_id, :unit_id,
+                (:version_id, :ppa_description, :account_id, :fund_source_id, :indicator_id, :unit_id,
                  :q1_target, :q2_target, :q3_target, :q4_target, :target_total,
                  :jan_amt, :feb_amt, :mar_amt, :apr_amt, :may_amt, :jun_amt,
                  :jul_amt, :aug_amt, :sep_amt, :oct_amt, :nov_amt, :dec_amt, :total_allocation,
@@ -101,7 +102,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Page heading -->
 <div class="mb-8 text-center">
-    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">2026 Consolidated Budget Proposal</h2>
+    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800"><?= e(getSelectedVersionName()) ?> Consolidated Budget Proposal</h2>
     <p class="mt-1 text-sm text-gray-500">Complete the form below. Fields with <span class="text-red-500">*</span> are required.</p>
 </div>
 

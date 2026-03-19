@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id']  = (int)$user['id'];
                 $_SESSION['fullname'] = $user['fullname'];
                 $_SESSION['role']     = $user['role'];
+                $_SESSION['selected_version_id'] = getActiveVersionId();
 
                 header('Location: ' . ($user['role'] === 'admin' ? 'index.php' : 'staff_dashboard.php'));
                 exit;
@@ -79,7 +80,7 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
             <i class="fa-solid fa-building-columns text-2xl" style="color:#f9ba15"></i>
         </div>
         <h1 class="text-2xl font-bold text-gray-800">PHO Budgeting System</h1>
-        <p class="text-sm text-gray-500 mt-1">FY 2026 — Provincial Health Office</p>
+        <p class="text-sm text-gray-500 mt-1">Provincial Health Office</p>
     </div>
 
     <!-- Auth Card -->

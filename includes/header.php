@@ -11,6 +11,16 @@ $currentRole = getUserRole();
 $currentName = currentFullname();
 $isLoggedIn  = !empty($_SESSION['user_id']);
 
+$_allVersions     = $isLoggedIn ? getAllVersions() : [];
+$_selectedVerId   = $isLoggedIn ? getSelectedVersionId() : 0;
+$_selectedVerName = '';
+foreach ($_allVersions as $_v) {
+    if ((int)$_v['id'] === $_selectedVerId) {
+        $_selectedVerName = $_v['year_name'];
+        break;
+    }
+}
+
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 if (basename($base) === 'master') $base = dirname($base);
 $base = rtrim($base, '/\\');
@@ -36,6 +46,8 @@ if ($currentRole === 'admin') {
         ['key' => 'units',         'label' => 'Units',          'icon' => 'fa-building',   'href' => $base . '/master/units.php'],
         ['key' => 'fund_sources',  'label' => 'Fund Sources',   'icon' => 'fa-wallet',     'href' => $base . '/master/fund_sources.php'],
         ['key' => 'indicators',    'label' => 'Indicators',     'icon' => 'fa-gauge-high', 'href' => $base . '/master/indicators.php'],
+        ['section' => 'SETTINGS'],
+        ['key' => 'manage_versions', 'label' => 'Budget Versions', 'icon' => 'fa-calendar-days', 'href' => $base . '/manage_versions.php'],
     ]);
 }
 ?>
@@ -123,7 +135,7 @@ if ($currentRole === 'admin') {
                 </div>
                 <div class="leading-tight">
                     <span class="block text-sm font-bold text-white tracking-tight">PHO Budgeting</span>
-                    <span class="block text-[10px] text-green-200">FY 2026</span>
+                    <span class="block text-[10px] text-green-200"><?= e($_selectedVerName ?: 'FY 2026') ?></span>
                 </div>
             </div>
             <!-- Page title separator (hidden on small screens) -->
@@ -133,6 +145,19 @@ if ($currentRole === 'admin') {
             </div>
         </div>
         <div class="flex items-center gap-3 text-sm">
+            <?php if ($isLoggedIn && count($_allVersions) > 0): ?>
+            <select id="globalVersionSelect"
+                    class="bg-white/15 text-white text-xs font-medium rounded-lg px-3 py-1.5 border border-white/20 backdrop-blur-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30 transition appearance-none"
+                    style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22white%22><path fill-rule=%22evenodd%22 d=%22M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z%22 clip-rule=%22evenodd%22/></svg>');background-repeat:no-repeat;background-position:right .5rem center;background-size:.8rem;padding-right:1.8rem"
+                    title="Switch Budget Year">
+                <?php foreach ($_allVersions as $_v): ?>
+                <option value="<?= (int)$_v['id'] ?>" <?= (int)$_v['id'] === $_selectedVerId ? 'selected' : '' ?>
+                        style="color:#333;background:#fff">
+                    <?= e($_v['year_name']) ?><?= $_v['is_active'] ? ' ●' : '' ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+            <?php endif; ?>
             <?php if ($isLoggedIn): ?>
             <span class="hidden sm:inline text-white/80 text-xs">
                 <i class="fa-solid fa-user-circle mr-1"></i> <?= e($currentName) ?>

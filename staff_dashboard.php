@@ -9,9 +9,10 @@ requireLogin();
 $pageTitle  = 'Staff Dashboard';
 $activeMenu = 'dashboard';
 
+$versionId = getSelectedVersionId();
 try {
     $pdo = getConnection();
-    $rows = $pdo->query("
+    $stmtRows = $pdo->prepare("
         SELECT bp.id, bp.ppa_description, bp.target_total, bp.total_allocation, bp.created_at,
                ac.account_code, ac.account_title, ac.expense_class,
                fs.fund_name,
@@ -20,8 +21,11 @@ try {
         JOIN   tbl_account_codes ac  ON bp.account_id     = ac.id
         JOIN   tbl_fund_sources  fs  ON bp.fund_source_id = fs.id
         JOIN   tbl_units         un  ON bp.unit_id        = un.id
+        WHERE  bp.version_id = :vid
         ORDER BY bp.created_at DESC
-    ")->fetchAll();
+    ");
+    $stmtRows->execute([':vid' => $versionId]);
+    $rows = $stmtRows->fetchAll();
 
     $fundSources = $pdo->query("SELECT DISTINCT fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll(PDO::FETCH_COLUMN);
     $unitNames   = $pdo->query("SELECT DISTINCT unit_name FROM tbl_units ORDER BY unit_name")->fetchAll(PDO::FETCH_COLUMN);

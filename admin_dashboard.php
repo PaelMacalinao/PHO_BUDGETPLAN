@@ -85,10 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_action'] ?? '') === 'dele
 }
 
 // ── Fetch all proposals with JOINed reference data
+$versionId = getSelectedVersionId();
 try {
     $pdo = getConnection();
 
-    $rows = $pdo->query("
+    $stmtRows = $pdo->prepare("
         SELECT bp.*,
                ac.account_code, ac.account_title, ac.expense_class,
                fs.fund_name,
@@ -99,8 +100,11 @@ try {
         JOIN   tbl_fund_sources   fs  ON bp.fund_source_id = fs.id
         JOIN   tbl_indicators     ind ON bp.indicator_id   = ind.id
         JOIN   tbl_units          un  ON bp.unit_id        = un.id
+        WHERE  bp.version_id = :vid
         ORDER BY ac.expense_class, ac.account_code, bp.ppa_description
-    ")->fetchAll();
+    ");
+    $stmtRows->execute([':vid' => $versionId]);
+    $rows = $stmtRows->fetchAll();
     $accounts   = $pdo->query("SELECT id, account_code, account_title, expense_class FROM tbl_account_codes ORDER BY account_code")->fetchAll();
     $fundSrcs   = $pdo->query("SELECT id, fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll();
     $indicators = $pdo->query("SELECT id, indicator_description FROM tbl_indicators ORDER BY id")->fetchAll();
@@ -580,9 +584,22 @@ fExpense.addEventListener('change', applyFilters);
 fFund.addEventListener('change', applyFilters);
 fUnit.addEventListener('change', applyFilters);
 
+// Pre-set filters from URL query parameters (e.g. ?expense=MOOE&fund=General+Fund&unit=...)
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    let changed = false;
+    if (params.get('expense')) { fExpense.value = params.get('expense'); changed = true; }
+    if (params.get('fund'))    { fFund.value    = params.get('fund');    changed = true; }
+    if (params.get('unit'))    { fUnit.value    = params.get('unit');    changed = true; }
+    if (changed) applyFilters();
+})();
+
 window.resetFilters = function() {
     fExpense.value = fFund.value = fUnit.value = '';
     applyFilters();
+    if (window.history.replaceState) {
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 };
 
 // ══════════════════════════════════════════════════
