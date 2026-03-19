@@ -26,7 +26,7 @@ try {
             if ($data[$f] === '') throw new InvalidArgumentException("'{$f}' is required.");
         }
 
-        foreach (['program_id','account_id','fund_source_id','indicator_id','unit_id'] as $f) {
+        foreach (['account_id','fund_source_id','indicator_id','unit_id'] as $f) {
             $data[$f] = (int)($_POST[$f] ?? 0);
             if ($data[$f] < 1) throw new InvalidArgumentException("Please select a valid option for '{$f}'.");
         }
@@ -43,7 +43,7 @@ try {
         $data['total_allocation'] = $submittedTotal > 0 ? $submittedTotal : round($at, 2);
 
         $sql = "UPDATE tbl_budget_proposals SET
-                    ppa_description=:ppa_description, program_id=:program_id, account_id=:account_id,
+                    ppa_description=:ppa_description, account_id=:account_id,
                     fund_source_id=:fund_source_id, indicator_id=:indicator_id, unit_id=:unit_id,
                     q1_target=:q1_target, q2_target=:q2_target, q3_target=:q3_target, q4_target=:q4_target, target_total=:target_total,
                     jan_amt=:jan_amt, feb_amt=:feb_amt, mar_amt=:mar_amt, apr_amt=:apr_amt, may_amt=:may_amt, jun_amt=:jun_amt,
@@ -67,11 +67,10 @@ try {
     $row = $stmt->fetch();
     if (!$row) { header('Location: index.php'); exit; }
 
-    $programs   = $pdo->query("SELECT id, program_name FROM tbl_programs_units ORDER BY program_name")->fetchAll();
     $accounts   = $pdo->query("SELECT id, account_code, account_title, expense_class FROM tbl_account_codes ORDER BY account_code")->fetchAll();
     $fundSrcs   = $pdo->query("SELECT id, fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll();
     $indicators = $pdo->query("SELECT id, indicator_description FROM tbl_indicators ORDER BY id")->fetchAll();
-    $units      = $pdo->query("SELECT id, unit_name FROM tbl_units ORDER BY unit_name")->fetchAll();
+    $units      = $pdo->query("SELECT id, unit_name, fund_source_id FROM tbl_units ORDER BY unit_name")->fetchAll();
 
 } catch (InvalidArgumentException $e) {
     http_response_code(422);
@@ -87,6 +86,14 @@ try {
         exit;
     }
     $row = null;
+}
+
+$unitsByFund = [];
+if (!empty($units)) {
+    foreach ($units as $u) {
+        $fsid = (int)$u['fund_source_id'];
+        $unitsByFund[$fsid][] = ['id' => (int)$u['id'], 'name' => $u['unit_name']];
+    }
 }
 
 $pageTitle  = 'Edit Proposal #' . (int)$id;
@@ -121,27 +128,27 @@ if (!$row) {
                 <label class="block text-sm font-semibold text-gray-700 mb-1">PPA Description <span class="text-red-500">*</span></label>
                 <textarea name="ppa_description" rows="2" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"><?= e($row['ppa_description']) ?></textarea>
             </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Program (PPA) <span class="text-red-500">*</span></label>
-                <select name="program_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select —</option>
-                    <?php foreach ($programs as $p): ?>
-                        <option value="<?= (int)$p['id'] ?>" <?= (int)$p['id']===(int)$row['program_id']?'selected':'' ?>><?= e($p['program_name']) ?></option>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">
+                    Fund Source <span class="text-red-500">*</span>
+                    <span id="fundSourceWarning" class="ml-2 text-amber-600 text-xs font-normal" style="display:none"><i class="fa-solid fa-triangle-exclamation"></i> Step 1: Select Fund Source to proceed</span>
+                </label>
+                <select name="fund_source_id" id="fundSourceSelect" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <option value="">— Select Fund Source —</option>
+                    <?php foreach ($fundSrcs as $f): ?>
+                        <option value="<?= (int)$f['id'] ?>" <?= (int)$f['id']===(int)$row['fund_source_id']?'selected':'' ?>><?= e($f['fund_name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div>
+            <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>
-                <select name="unit_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select —</option>
-                    <?php foreach ($units as $u): ?>
-                        <option value="<?= (int)$u['id'] ?>" <?= (int)$u['id']===(int)$row['unit_id']?'selected':'' ?>><?= e($u['unit_name']) ?></option>
-                    <?php endforeach; ?>
+                <select name="unit_id" id="unitSelect" required class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition" data-preselect="<?= (int)$row['unit_id'] ?>">
+                    <option value="">— Select Unit —</option>
                 </select>
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Account Code <span class="text-red-500">*</span></label>
-                <select name="account_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                <select name="account_id" required class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                     <option value="">— Select —</option>
                     <?php foreach ($accounts as $a): ?>
                         <option value="<?= (int)$a['id'] ?>" <?= (int)$a['id']===(int)$row['account_id']?'selected':'' ?>><?= e($a['account_code']) ?> — <?= e($a['account_title']) ?> (<?= e($a['expense_class']) ?>)</option>
@@ -149,17 +156,8 @@ if (!$row) {
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Fund Source <span class="text-red-500">*</span></label>
-                <select name="fund_source_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select —</option>
-                    <?php foreach ($fundSrcs as $f): ?>
-                        <option value="<?= (int)$f['id'] ?>" <?= (int)$f['id']===(int)$row['fund_source_id']?'selected':'' ?>><?= e($f['fund_name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Performance Indicator <span class="text-red-500">*</span></label>
-                <select name="indicator_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                <select name="indicator_id" required class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
                     <option value="">— Select —</option>
                     <?php foreach ($indicators as $ind): ?>
                         <option value="<?= (int)$ind['id'] ?>" <?= (int)$ind['id']===(int)$row['indicator_id']?'selected':'' ?>><?= e($ind['indicator_description']) ?></option>
@@ -270,6 +268,10 @@ if (!$row) {
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
 <script>
+const unitsByFund = <?= json_encode($unitsByFund, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+</script>
+
+<script>
 (() => {
     'use strict';
 
@@ -289,6 +291,48 @@ if (!$row) {
     const indicator = document.getElementById('stepIndicator');
     const quarterInputs = document.querySelectorAll('.quarter-input');
     const monthInputs = document.querySelectorAll('.month-input');
+
+    // ── Fund Source → Dependent Unit Dropdown + Form Lock ──
+    const fundSourceSelect  = document.getElementById('fundSourceSelect');
+    const unitSelect        = document.getElementById('unitSelect');
+    const fundSourceWarning = document.getElementById('fundSourceWarning');
+    const lockableFields    = form.querySelectorAll('.lockable, .quarter-input, .month-input, #totalAllocation, [name="justification"]');
+    const preselectedUnit   = parseInt(unitSelect.dataset.preselect) || 0;
+
+    function setFormLocked(locked) {
+        lockableFields.forEach(el => el.disabled = locked);
+        btnNext.disabled = locked;
+        fundSourceWarning.style.display = locked ? '' : 'none';
+    }
+
+    function populateUnits(fundSourceId, selectId) {
+        unitSelect.innerHTML = '<option value="">— Select Unit —</option>';
+        const list = unitsByFund[fundSourceId] || [];
+        list.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = u.name;
+            if (selectId && u.id === selectId) opt.selected = true;
+            unitSelect.appendChild(opt);
+        });
+    }
+
+    fundSourceSelect.addEventListener('change', function() {
+        const val = this.value;
+        if (!val) {
+            setFormLocked(true);
+            populateUnits(0);
+        } else {
+            setFormLocked(false);
+            populateUnits(val);
+        }
+    });
+
+    if (fundSourceSelect.value) {
+        populateUnits(fundSourceSelect.value, preselectedUnit);
+    } else {
+        setFormLocked(true);
+    }
 
     function buildIndicator() {
         let html = '';

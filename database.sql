@@ -14,8 +14,8 @@ DROP TABLE IF EXISTS `tbl_budget_proposals`;
 DROP TABLE IF EXISTS `tbl_account_codes`;
 DROP TABLE IF EXISTS `tbl_programs_units`;
 DROP TABLE IF EXISTS `tbl_units`;
-DROP TABLE IF EXISTS `tbl_fund_sources`;
 DROP TABLE IF EXISTS `tbl_indicators`;
+DROP TABLE IF EXISTS `tbl_fund_sources`;
 DROP TABLE IF EXISTS `tbl_users`;
 
 -- ────────────────────────────────────────────────
@@ -38,13 +38,25 @@ CREATE TABLE `tbl_users` (
 -- REFERENCE TABLES (Master Data)
 -- ────────────────────────────────────────────────
 
-CREATE TABLE `tbl_units` (
-  `id`        INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `unit_name` VARCHAR(255) NOT NULL,
-  `created_at` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE `tbl_fund_sources` (
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `fund_name`  VARCHAR(255) NOT NULL,
+  `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_unit_name` (`unit_name`)
+  UNIQUE KEY `uq_fund_name` (`fund_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `tbl_units` (
+  `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `unit_name`      VARCHAR(255) NOT NULL,
+  `fund_source_id` INT UNSIGNED NULL,
+  `created_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_unit_name` (`unit_name`),
+  INDEX `idx_unit_fund_source` (`fund_source_id`),
+  CONSTRAINT `fk_unit_fund_source` FOREIGN KEY (`fund_source_id`) REFERENCES `tbl_fund_sources`(`id`) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `tbl_programs_units` (
@@ -65,15 +77,6 @@ CREATE TABLE `tbl_account_codes` (
   `updated_at`    DATETIME                    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_account_code` (`account_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `tbl_fund_sources` (
-  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `fund_name`  VARCHAR(255) NOT NULL,
-  `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_fund_name` (`fund_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `tbl_indicators` (
@@ -153,11 +156,50 @@ INSERT INTO `tbl_users` (`fullname`, `username`, `password`, `role`) VALUES
   ('System Administrator', 'admin', '$2y$10$j2/4yo6GmaeaEW.K6XTUXu4tQX.HXtn9Okhw0886He44o9R5bUwty', 'admin'),
   ('Staff User',           'staff', '$2y$10$D5FagNfUiha.KgPwuh91i.VPAae.nxfUE8UxtFKHCD.owNhWl3ds6', 'staff');
 
-INSERT INTO `tbl_units` (`unit_name`) VALUES
-  ('PHO CLINIC'),
-  ('ADMINISTRATIVE SUPPORT'),
-  ('ORAL HEALTH PROGRAM'),
-  ('PESU');
+INSERT INTO `tbl_fund_sources` (`fund_name`) VALUES
+  ('General Fund'),
+  ('Special Project');
+
+SET @gf = (SELECT `id` FROM `tbl_fund_sources` WHERE `fund_name` = 'General Fund');
+SET @sp = (SELECT `id` FROM `tbl_fund_sources` WHERE `fund_name` = 'Special Project');
+
+INSERT INTO `tbl_units` (`unit_name`, `fund_source_id`) VALUES
+  -- General Fund (28)
+  ('ORAL HEALTH PROGRAM',                                              @gf),
+  ('EXPANDED PROGRAM ON IMMUNIZATION (EPI)',                           @gf),
+  ('SENIOR CITIZEN''S PROGRAM',                                        @gf),
+  ('HIV PREVENTION AND CONTROL PROGRAM',                               @gf),
+  ('FIELD HEALTH SERVICES INFORMATION SYSTEM (FHSIS)',                 @gf),
+  ('ENVIRONMENTAL SANITATION AND PUBLIC HEALTH LABORATORY (ESPHL)',    @gf),
+  ('LEPROSY CONTROL PROGRAM',                                         @gf),
+  ('TRADITIONAL COMPLEMENTARY ALTERNATIVE MEDICINE PROGRAM (TCAM)',    @gf),
+  ('FAMILY PLANNING PROGRAM',                                         @gf),
+  ('NON-COMMUNICABLE DISEASES PREVENTION CONTROL PROGRAM (NCD)',       @gf),
+  ('MATERNAL CARE PROGRAM',                                            @gf),
+  ('HEALTH EDUCATION AND PROMOTION UNIT (HEPU)',                       @gf),
+  ('NATIONAL VOLUNTARY BLOOD SERVICES PROGRAM (NVBSP)',                @gf),
+  ('ADOLESCENT HEALTH AND DEVELOPMENT PROGRAM (AHDP)',                 @gf),
+  ('ENVIRONMENTAL SANITATION PROGRAM (ENSAN)',                         @gf),
+  ('RABIES PREVENTION AND CONTROL PROGRAM',                            @gf),
+  ('PROVINCIAL EPIDEMIOLOGY AND SURVEILLANCE UNIT (PESU)',             @gf),
+  ('DISASTER RISK REDUCTION AND MANAGEMENT IN HEALTH (DRRM-H)',       @gf),
+  ('INDIGENOUS PEOPLES HEALTH PROGRAM',                                @gf),
+  ('TUBERCULOSIS CONTROL PROGRAM (TB)',                                @gf),
+  ('EMERGING/RE-EMERGING INFECTIOUS DISEASE PROGRAM (EREID)',          @gf),
+  ('ADMINISTRATIVE SUPPORT',                                           @gf),
+  ('HEALTH SERVICE DELIVERY DIVISION HEAD',                            @gf),
+  ('COLD CHAIN',                                                       @gf),
+  ('SUPPLY AND LOGISTICS UNIT',                                        @gf),
+  ('HEAD OF OFFICE',                                                   @gf),
+  ('HEALTH SYSTEM SUPPORT DIVISION HEAD',                              @gf),
+  ('PHO CLINIC',                                                       @gf),
+  -- Special Project (6)
+  ('MOLECULAR BIOLOGY LABORATORY',                                                    @sp),
+  ('PROVINCIAL NUTRITION PROGRAM',                                                    @sp),
+  ('COMPREHENSIVE BARANGAY HEALTH WORKER DEVELOPMENT PROJECT (CBHWDP)',               @sp),
+  ('COUNTERPART TO BHW MALAMPAYA PROJECT (CBHWMP)',                                   @sp),
+  ('KILUSANG LIGTAS MALARIA (KLM)',                                                   @sp),
+  ('COUNTERPART TO DOH PROGRAMS (CDOHP)',                                             @sp);
 
 INSERT INTO `tbl_programs_units` (`program_name`) VALUES
   ('Provision of Basic Health Services at PHO Public Health Station'),
@@ -166,10 +208,6 @@ INSERT INTO `tbl_programs_units` (`program_name`) VALUES
   ('Mobilization and Delivery of Logistics to Beneficiaries'),
   ('Networking, Coordination and Communication with Municipal, National and Other Partner Agencies'),
   ('Support to Office/Clinic Operations and Other Dues and Medico - Legal Services');
-
-INSERT INTO `tbl_fund_sources` (`fund_name`) VALUES
-  ('General Fund'),
-  ('Special Project');
 
 -- MOOE Account Codes (33)
 INSERT INTO `tbl_account_codes` (`account_code`, `account_title`, `expense_class`) VALUES
