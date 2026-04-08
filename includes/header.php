@@ -13,6 +13,16 @@ $isLoggedIn  = !empty($_SESSION['user_id']);
 $hiddenHeaderNames = ['System Administrator', 'Staff User'];
 $headerDisplayName = in_array(trim($currentName), $hiddenHeaderNames, true) ? '' : $currentName;
 
+$headerRoleLabel = 'STAFF';
+if ($currentRole === 'admin') {
+    $headerRoleLabel = 'ADMIN';
+} elseif ($currentRole === 'viewer') {
+    $headerRoleLabel = 'VIEWER';
+}
+$headerUserTitle = $headerDisplayName !== ''
+    ? $headerDisplayName . ' | ' . $headerRoleLabel
+    : $headerRoleLabel;
+
 $_allVersions     = $isLoggedIn ? getAllVersions() : [];
 $_selectedVerId   = $isLoggedIn ? getSelectedVersionId() : 0;
 $_selectedVerName = '';
@@ -202,24 +212,15 @@ $menuItems[] = [
             </div>
 
             <?php if ($isLoggedIn): ?>
-            <?php if ($headerDisplayName !== ''): ?>
-            <span class="hidden sm:inline text-white/80 text-xs">
-                <i class="fa-solid fa-user-circle mr-1"></i> <?= e($headerDisplayName) ?>
+            <span class="max-w-[min(58vw,16rem)] shrink truncate text-right text-[10px] tracking-wide text-white sm:max-w-none sm:overflow-visible sm:whitespace-normal sm:text-xs"
+                  title="<?= e($headerUserTitle) ?>">
+                <i class="fa-solid fa-user mr-1 text-[9px] text-white/85"></i>
+                <?php if ($headerDisplayName !== ''): ?>
+                    <span class="font-normal uppercase"><?= e($headerDisplayName) ?></span>
+                    <span class="mx-1 text-white/70">|</span>
+                <?php endif; ?>
+                <span class="font-bold uppercase"><?= e($headerRoleLabel) ?></span>
             </span>
-            <?php endif; ?>
-            <?php if ($currentRole === 'admin'): ?>
-            <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
-                <i class="fa-solid fa-shield-halved mr-1"></i> Admin
-            </span>
-            <?php elseif ($currentRole === 'viewer'): ?>
-            <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
-                <i class="fa-solid fa-eye mr-1"></i> Viewer
-            </span>
-            <?php else: ?>
-            <span class="bg-white/15 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
-                <i class="fa-solid fa-user mr-1"></i> Staff
-            </span>
-            <?php endif; ?>
             <?php endif; ?>
         </div>
     </header>
