@@ -6,6 +6,11 @@
 require_once __DIR__ . '/config.php';
 requireLogin();
 
+if (!canSubmitProposals()) {
+    header('Location: index.php');
+    exit;
+}
+
 // ── Handle POST (AJAX) ──────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json; charset=utf-8');
@@ -20,11 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($data[$f] === '') throw new InvalidArgumentException("'{$f}' is required.");
         }
 
-        $fkFields = ['account_id', 'fund_source_id', 'indicator_id', 'unit_id'];
+        $fkFields = ['account_id', 'fund_source_id', 'unit_id'];
         foreach ($fkFields as $f) {
             $data[$f] = (int)($_POST[$f] ?? 0);
             if ($data[$f] < 1) throw new InvalidArgumentException("Please select a valid option for '{$f}'.");
         }
+        $data['indicator_id'] = resolveIndicatorId($pdo, trim($_POST['indicator_text'] ?? ''));
 
         $quarters = ['q1_target', 'q2_target', 'q3_target', 'q4_target'];
         $targetTotal = 0;
@@ -84,17 +90,26 @@ try {
     $pdo        = getConnection();
     $accounts   = $pdo->query("SELECT id, account_code, account_title, expense_class FROM tbl_account_codes ORDER BY account_code")->fetchAll();
     $fundSrcs   = $pdo->query("SELECT id, fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll();
-    $indicators = $pdo->query("SELECT id, indicator_description FROM tbl_indicators ORDER BY id")->fetchAll();
     $units      = $pdo->query("SELECT id, unit_name, fund_source_id FROM tbl_units ORDER BY unit_name")->fetchAll();
 } catch (PDOException $e) {
     error_log('DB Error: ' . $e->getMessage());
-    $accounts = $fundSrcs = $indicators = $units = [];
+    $accounts = $fundSrcs = $units = [];
 }
 
 $unitsByFund = [];
 foreach ($units as $u) {
     $fsid = (int)$u['fund_source_id'];
     $unitsByFund[$fsid][] = ['id' => (int)$u['id'], 'name' => $u['unit_name']];
+}
+
+$accountsByExpense = [];
+foreach ($accounts as $a) {
+    $expense = trim((string)$a['expense_class']);
+    $accountsByExpense[$expense][] = [
+        'id' => (int)$a['id'],
+        'code' => $a['account_code'],
+        'title' => $a['account_title'],
+    ];
 }
 
 require_once __DIR__ . '/includes/header.php';
@@ -132,43 +147,42 @@ require_once __DIR__ . '/includes/header.php';
                     <span id="fundSourceWarning" class="ml-2 text-amber-600 text-xs font-normal"><i class="fa-solid fa-triangle-exclamation"></i> Step 1: Select Fund Source to proceed</span>
                 </label>
                 <select name="fund_source_id" id="fundSourceSelect" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select Fund Source —</option>
+                    <option value="">Select Fund Source</option>
                     <?php foreach ($fundSrcs as $f): ?>
                         <option value="<?= (int)$f['id'] ?>"><?= e($f['fund_name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <!-- Unit — dependent on Fund Source, starts disabled -->
+            <!-- Unit - dependent on Fund Source, starts disabled -->
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>
                 <select name="unit_id" id="unitSelect" required disabled class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select Unit —</option>
+                    <option value="">Select Unit</option>
                 </select>
             </div>
-            <!-- Account Code -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Expense Class <span class="text-red-500">*</span></label>
+                <select id="expenseClassSelect" required disabled class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <option value="">Select Expense Class</option>
+                    <option value="MOOE">MOOE - Maintenance &amp; Other</option>
+                    <option value="CO">CO - Capital Outlay</option>
+                    <option value="PS">PS - Personal Services</option>
+                </select>
+            </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Account Code <span class="text-red-500">*</span></label>
-                <select name="account_id" required disabled class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select Account —</option>
-                    <?php foreach ($accounts as $a): ?>
-                        <option value="<?= (int)$a['id'] ?>"><?= e($a['account_code']) ?> — <?= e($a['account_title']) ?> (<?= e($a['expense_class']) ?>)</option>
-                    <?php endforeach; ?>
+                <select name="account_id" id="accountSelect" required disabled class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <option value="">Select Account</option>
                 </select>
             </div>
-            <!-- Performance Indicator -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Performance Indicator <span class="text-red-500">*</span></label>
-                <select name="indicator_id" required disabled class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                    <option value="">— Select Indicator —</option>
-                    <?php foreach ($indicators as $ind): ?>
-                        <option value="<?= (int)$ind['id'] ?>"><?= e($ind['indicator_description']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Performance Indicator</label>
+                <input type="text" name="indicator_text" disabled placeholder="Enter performance indicator" class="lockable w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition" />
             </div>
         </div>
     </div>
-
-    <!-- ─── TAB 2: Physical Targets ─── -->
+    
+    <!-- TAB 2: Physical Targets -->
     <div class="tab-panel p-6 sm:p-10" data-step="2">
         <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-6">
             <span class="bg-emerald-100 text-emerald-700 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-bullseye"></i></span>
@@ -273,6 +287,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <script>
 const unitsByFund = <?= json_encode($unitsByFund, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+const accountsByExpense = <?= json_encode($accountsByExpense, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
 </script>
 
 <script>
@@ -299,22 +314,23 @@ const unitsByFund = <?= json_encode($unitsByFund, JSON_HEX_TAG | JSON_HEX_AMP) ?
     const monthInputs   = document.querySelectorAll('.month-input');
 
     // ── Fund Source → Dependent Unit Dropdown + Form Lock ──
-    const fundSourceSelect  = document.getElementById('fundSourceSelect');
-    const unitSelect        = document.getElementById('unitSelect');
-    const fundSourceWarning = document.getElementById('fundSourceWarning');
-    const lockableFields    = form.querySelectorAll('.lockable, .quarter-input, .month-input, #totalAllocation, [name="justification"]');
+    const fundSourceSelect   = document.getElementById('fundSourceSelect');
+    const unitSelect         = document.getElementById('unitSelect');
+    const expenseClassSelect = document.getElementById('expenseClassSelect');
+    const accountSelect      = document.getElementById('accountSelect');
+    const fundSourceWarning  = document.getElementById('fundSourceWarning');
+    const lockableFields     = form.querySelectorAll('.lockable, .quarter-input, .month-input, #totalAllocation, [name="justification"]');
 
     function setFormLocked(locked) {
         lockableFields.forEach(el => el.disabled = locked);
         btnNext.disabled = locked;
         fundSourceWarning.classList.toggle('d-none', !locked);
-        if (locked) fundSourceWarning.style.display = '';
-        else fundSourceWarning.style.display = 'none';
+        fundSourceWarning.style.display = locked ? '' : 'none';
     }
 
     function populateUnits(fundSourceId) {
-        unitSelect.innerHTML = '<option value="">— Select Unit —</option>';
         const list = unitsByFund[fundSourceId] || [];
+        unitSelect.innerHTML = '<option value="">Select Unit</option>';
         list.forEach(u => {
             const opt = document.createElement('option');
             opt.value = u.id;
@@ -323,15 +339,33 @@ const unitsByFund = <?= json_encode($unitsByFund, JSON_HEX_TAG | JSON_HEX_AMP) ?
         });
     }
 
+    function populateAccounts(expenseClass) {
+        const list = accountsByExpense[expenseClass] || [];
+        accountSelect.innerHTML = '<option value="">Select Account</option>';
+        list.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.id;
+            opt.textContent = `${a.code} - ${a.title}`;
+            accountSelect.appendChild(opt);
+        });
+    }
+
     fundSourceSelect.addEventListener('change', function() {
         const val = this.value;
         if (!val) {
             setFormLocked(true);
             populateUnits(0);
+            populateAccounts('');
+            expenseClassSelect.value = '';
         } else {
             setFormLocked(false);
             populateUnits(val);
+            populateAccounts(expenseClassSelect.value);
         }
+    });
+
+    expenseClassSelect.addEventListener('change', function() {
+        populateAccounts(this.value);
     });
 
     setFormLocked(true);
@@ -547,3 +581,6 @@ const unitsByFund = <?= json_encode($unitsByFund, JSON_HEX_TAG | JSON_HEX_AMP) ?
     updateAmountInWords();
 })();
 </script>
+
+
+

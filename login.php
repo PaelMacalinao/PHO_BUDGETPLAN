@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 initSession();
 
 if (!empty($_SESSION['user_id'])) {
-    header('Location: ' . ($_SESSION['role'] === 'admin' ? 'index.php' : 'staff_dashboard.php'));
+    header('Location: ' . (in_array($_SESSION['role'] ?? '', ['admin', 'viewer'], true) ? 'index.php' : 'staff_dashboard.php'));
     exit;
 }
 
@@ -28,10 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user_id']  = (int)$user['id'];
                 $_SESSION['fullname'] = $user['fullname'];
+                $_SESSION['auth_role'] = $user['role'];
                 $_SESSION['role']     = $user['role'];
+                $_SESSION['user_role'] = $user['role'];
                 $_SESSION['selected_version_id'] = getActiveVersionId();
 
-                header('Location: ' . ($user['role'] === 'admin' ? 'index.php' : 'staff_dashboard.php'));
+                header('Location: ' . (in_array($user['role'], ['admin', 'viewer'], true) ? 'index.php' : 'staff_dashboard.php'));
                 exit;
             } else {
                 $error = 'Invalid username or password.';

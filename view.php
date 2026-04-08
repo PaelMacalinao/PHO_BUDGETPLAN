@@ -7,21 +7,23 @@ requireLogin();
 
 $id  = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $row = null;
+$backHref = canViewAllData() ? 'index.php' : 'staff_dashboard.php';
 
 if ($id) {
     try {
         $pdo  = getConnection();
+        $access = buildProposalAccessFilter('bp');
         $stmt = $pdo->prepare("
             SELECT bp.*, ac.account_code, ac.account_title, ac.expense_class,
                    fs.fund_name, ind.indicator_description, un.unit_name
             FROM   tbl_budget_proposals bp
             JOIN   tbl_account_codes ac   ON bp.account_id     = ac.id
             JOIN   tbl_fund_sources  fs   ON bp.fund_source_id = fs.id
-            JOIN   tbl_indicators    ind  ON bp.indicator_id   = ind.id
+            LEFT JOIN tbl_indicators ind  ON bp.indicator_id   = ind.id
             JOIN   tbl_units         un   ON bp.unit_id        = un.id
-            WHERE  bp.id = :id LIMIT 1
+            WHERE  bp.id = :id{$access['sql']} LIMIT 1
         ");
-        $stmt->execute([':id' => $id]);
+        $stmt->execute([':id' => $id] + $access['params']);
         $row = $stmt->fetch();
     } catch (PDOException $e) {
         error_log('DB Error: ' . $e->getMessage());
@@ -40,7 +42,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
     <h2 class="text-xl font-semibold text-gray-700 mb-2">Proposal Not Found</h2>
     <p class="text-sm text-gray-400 mb-6">The record does not exist or the ID is invalid.</p>
-    <a href="index.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md">
+    <a href="<?= e($backHref) ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md">
         <i class="fa-solid fa-arrow-left text-xs"></i> Return to Dashboard
     </a>
 </div>
@@ -155,13 +157,15 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Bottom nav -->
 <div class="flex items-center justify-between flex-wrap gap-3">
-    <a href="index.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-100 transition shadow-sm">
+    <a href="<?= e($backHref) ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-100 transition shadow-sm">
         <i class="fa-solid fa-arrow-left text-xs"></i> Back to Dashboard
     </a>
     <div class="flex items-center gap-2">
+        <?php if (isAdmin()): ?>
         <a href="edit.php?id=<?= (int)$row['id'] ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md">
             <i class="fa-solid fa-pen-to-square text-xs"></i> Edit Proposal
         </a>
+        <?php endif; ?>
         <span class="text-xs text-gray-400">Updated: <?= date('M j, Y g:i A', strtotime($row['updated_at'])) ?></span>
     </div>
 </div>

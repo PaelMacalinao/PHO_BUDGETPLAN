@@ -6,12 +6,18 @@
 require_once __DIR__ . '/config.php';
 requireLogin();
 
-$pageTitle  = 'Staff Dashboard';
+if (canViewAllData()) {
+    header('Location: index.php');
+    exit;
+}
+
+$pageTitle  = 'My Submissions';
 $activeMenu = 'dashboard';
 
 $versionId = getSelectedVersionId();
 try {
     $pdo = getConnection();
+    $access = buildProposalAccessFilter('bp');
     $stmtRows = $pdo->prepare("
         SELECT bp.id, bp.ppa_description, bp.target_total, bp.total_allocation, bp.created_at,
                ac.account_code, ac.account_title, ac.expense_class,
@@ -21,14 +27,16 @@ try {
         JOIN   tbl_account_codes ac  ON bp.account_id     = ac.id
         JOIN   tbl_fund_sources  fs  ON bp.fund_source_id = fs.id
         JOIN   tbl_units         un  ON bp.unit_id        = un.id
-        WHERE  bp.version_id = :vid
+        WHERE  bp.version_id = :vid{$access['sql']}
         ORDER BY bp.created_at DESC
     ");
-    $stmtRows->execute([':vid' => $versionId]);
+    $stmtRows->execute([':vid' => $versionId] + $access['params']);
     $rows = $stmtRows->fetchAll();
 
-    $fundSources = $pdo->query("SELECT DISTINCT fund_name FROM tbl_fund_sources ORDER BY fund_name")->fetchAll(PDO::FETCH_COLUMN);
-    $unitNames   = $pdo->query("SELECT DISTINCT unit_name FROM tbl_units ORDER BY unit_name")->fetchAll(PDO::FETCH_COLUMN);
+    $fundSources = array_values(array_unique(array_map(static fn($row) => $row['fund_name'], $rows)));
+    sort($fundSources);
+    $unitNames   = array_values(array_unique(array_map(static fn($row) => $row['unit_name'], $rows)));
+    sort($unitNames);
     $expClasses  = ['MOOE', 'CO', 'PS'];
 } catch (PDOException $e) {
     error_log('DB Error: ' . $e->getMessage());
@@ -44,6 +52,16 @@ $uniqueUnits     = count($unitNames);
 
 require_once __DIR__ . '/includes/header.php';
 ?>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800">My Submitted Proposals</h2>
+        <p class="text-sm text-gray-500 mt-1">Review the forms you submitted for <?= e(getSelectedVersionName()) ?>. Only your own submissions are shown here.</p>
+    </div>
+    <a href="create.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md whitespace-nowrap">
+        <i class="fa-solid fa-plus text-xs"></i> New Proposal
+    </a>
+</div>
 
 <!-- Summary Cards -->
 <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -114,7 +132,6 @@ require_once __DIR__ . '/includes/header.php';
         </div>
         <div class="flex items-end gap-2 lg:ml-auto">
             <button id="btnReset" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition px-3 py-2"><i class="fa-solid fa-rotate-left text-xs"></i> Reset</button>
-            <a href="create.php" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md whitespace-nowrap"><i class="fa-solid fa-plus text-xs"></i> New Proposal</a>
         </div>
     </div>
 
@@ -128,6 +145,7 @@ require_once __DIR__ . '/includes/header.php';
                     <th class="py-3 px-2 text-white">Unit</th>
                     <th class="py-3 px-2 text-white">Expense Class</th>
                     <th class="py-3 px-2 text-white">Fund Source</th>
+                    <th class="py-3 px-2 text-white">Submitted</th>
                     <th class="py-3 px-2 text-right text-white">Target</th>
                     <th class="py-3 px-2 text-right text-white">Allocation</th>
                     <th class="py-3 px-2 text-center text-white">Actions</th>
@@ -141,6 +159,7 @@ require_once __DIR__ . '/includes/header.php';
                     <td class="py-3 px-2"><span class="inline-block bg-violet-50 text-violet-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['unit_name']) ?></span></td>
                     <td class="py-3 px-2"><span class="inline-block bg-amber-50 text-amber-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['expense_class']) ?></span></td>
                     <td class="py-3 px-2"><span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full"><?= e($r['fund_name']) ?></span></td>
+                    <td class="py-3 px-2 text-sm text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($r['created_at'])) ?></td>
                     <td class="py-3 px-2 text-right font-semibold text-gray-700"><?= number_format((int)$r['target_total']) ?></td>
                     <td class="py-3 px-2 text-right font-semibold text-emerald-700"><?= peso((float)$r['total_allocation']) ?></td>
                     <td class="py-3 px-2 text-center whitespace-nowrap">
@@ -155,8 +174,8 @@ require_once __DIR__ . '/includes/header.php';
     <?php else: ?>
     <div class="px-6 py-20 text-center">
         <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6"><i class="fa-solid fa-folder-open text-4xl text-gray-300"></i></div>
-        <h2 class="text-xl font-semibold text-gray-600 mb-2">No Budget Proposals Yet</h2>
-        <p class="text-sm text-gray-400 mb-6 max-w-md mx-auto">Get started by creating your first proposal.</p>
+        <h2 class="text-xl font-semibold text-gray-600 mb-2">No Submitted Proposals Yet</h2>
+        <p class="text-sm text-gray-400 mb-6 max-w-md mx-auto">Your review dashboard will show the forms you submit here. Start by creating your first proposal.</p>
         <a href="create.php" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md"><i class="fa-solid fa-plus text-xs"></i> Create First Proposal</a>
         <?php if (isset($dbError)): ?><p class="mt-4 text-xs text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Could not connect to the database.</p><?php endif; ?>
     </div>
@@ -183,7 +202,7 @@ require_once __DIR__ . '/includes/header.php';
             emptyTable: 'No matching proposals found.'
         },
         columnDefs: [
-            { orderable: false, targets: [7] },
+            { orderable: false, targets: [8] },
             { className: 'whitespace-nowrap', targets: '_all' }
         ]
     });

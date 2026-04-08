@@ -67,24 +67,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $verId = (int)($_POST['version_id'] ?? 0);
         if ($verId > 0) {
             try {
-                $countStmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_budget_proposals WHERE version_id = :id");
-                $countStmt->execute([':id' => $verId]);
-                $count = (int)$countStmt->fetchColumn();
+                $verStmt = $pdo->prepare("
+                    SELECT bv.id, bv.year_name, bv.is_active, COUNT(bp.id) AS proposal_count
+                    FROM tbl_budget_versions bv
+                    LEFT JOIN tbl_budget_proposals bp ON bp.version_id = bv.id
+                    WHERE bv.id = :id
+                    GROUP BY bv.id, bv.year_name, bv.is_active
+                    LIMIT 1
+                ");
+                $verStmt->execute([':id' => $verId]);
+                $ver = $verStmt->fetch();
 
-                if ($count > 0) {
-                    $message = "Cannot delete: this version has {$count} proposal(s) linked to it.";
+                if (!$ver) {
+                    $message = 'Budget version not found.';
                     $msgType = 'error';
                 } else {
-                    $activeCheck = $pdo->prepare("SELECT is_active FROM tbl_budget_versions WHERE id = :id");
-                    $activeCheck->execute([':id' => $verId]);
-                    $ver = $activeCheck->fetch();
-                    if ($ver && (int)$ver['is_active'] === 1) {
+                    $count = (int)$ver['proposal_count'];
+
+                    if ((int)$ver['is_active'] === 1) {
                         $message = 'Cannot delete the currently active version.';
+                        $msgType = 'error';
+                    } elseif ($count > 0) {
+                        $message = "Cannot delete: this version has {$count} proposal(s) linked to it.";
                         $msgType = 'error';
                     } else {
                         $stmt = $pdo->prepare("DELETE FROM tbl_budget_versions WHERE id = :id");
                         $stmt->execute([':id' => $verId]);
-                        $message = 'Version deleted.';
+
+                        if ((int)($_SESSION['selected_version_id'] ?? 0) === $verId) {
+                            unset($_SESSION['selected_version_id']);
+                        }
+
+                        $message = 'Version "' . $ver['year_name'] . '" deleted successfully.';
                         $msgType = 'success';
                     }
                 }
@@ -201,18 +215,25 @@ require_once __DIR__ . '/includes/header.php';
                             <i class="fa-solid fa-check"></i> Set Active
                         </button>
                     </form>
-                    <?php if ($count === 0): ?>
                     <form method="POST" class="inline">
                         <input type="hidden" name="_action" value="delete">
                         <input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>">
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition shadow-sm"
+                        <button type="submit"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm <?= $count === 0 ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' ?>"
+                                <?= $count === 0 ? '' : 'disabled' ?>
+                                title="<?= $count === 0 ? 'Delete this version' : 'Versions with linked proposals cannot be deleted.' ?>"
                                 onclick="return confirm('Delete \'<?= e($v['year_name']) ?>\'? This cannot be undone.')">
                             <i class="fa-solid fa-trash-can"></i> Delete
                         </button>
                     </form>
-                    <?php endif; ?>
                     <?php else: ?>
                     <span class="text-xs text-brand-600 font-medium italic">Currently Active</span>
+                    <button type="button"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-semibold cursor-not-allowed"
+                            disabled
+                            title="The active version cannot be deleted.">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
                     <?php endif; ?>
                 </div>
             </div>

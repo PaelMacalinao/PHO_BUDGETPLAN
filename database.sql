@@ -27,7 +27,7 @@
     `fullname`   VARCHAR(255)         NOT NULL,
     `username`   VARCHAR(100)         NOT NULL,
     `password`   VARCHAR(255)         NOT NULL,
-    `role`       ENUM('admin','staff') NOT NULL DEFAULT 'staff',
+    `role`       ENUM('admin','staff','viewer') NOT NULL DEFAULT 'staff',
     `created_at` DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_username` (`username`)

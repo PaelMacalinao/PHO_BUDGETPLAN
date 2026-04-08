@@ -1,22 +1,22 @@
-/* ═══════════════════════════════════════════════════
-   PHO Palawan — Consolidated Branding Stylesheet
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PHO Palawan â€” Consolidated Branding Stylesheet
    Primary Dark Green : #0b4d26
    Accent Gold/Yellow : #f9ba15
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Number-input spinner removal ──────────────── */
+/* â”€â”€ Number-input spinner removal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 input[type="number"] { -moz-appearance: textfield; }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-/* ── Scrollbar ─────────────────────────────────── */
+/* â”€â”€ Scrollbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: #a8e0b9; border-radius: 4px; }
 
 
-/* ═══════════════════════════════════════════════════
-   1. PRIMARY BUTTONS — Override Bootstrap .btn-primary
-   ═══════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   1. PRIMARY BUTTONS â€” Override Bootstrap .btn-primary
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .btn-primary,
 .btn-primary:active,
 .btn-primary:focus,
@@ -59,9 +59,9 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 }
 
 
-/* ═══════════════════════════════════════════════════
-   2. FORM FOCUS RINGS — Inputs, Selects, Textareas
-   ═══════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   2. FORM FOCUS RINGS â€” Inputs, Selects, Textareas
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .form-control:focus,
 .form-select:focus,
 textarea.form-control:focus,
@@ -87,9 +87,9 @@ select.form-select:focus {
 }
 
 
-/* ═══════════════════════════════════════════════════
-   3. NAV-TABS — Active tab green bottom border
-   ═══════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   3. NAV-TABS â€” Active tab green bottom border
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .nav-tabs .nav-link.active,
 .nav-tabs .nav-item.show .nav-link {
     color: #0b4d26 !important;
@@ -109,9 +109,9 @@ select.form-select:focus {
 }
 
 
-/* ═══════════════════════════════════════════════════
-   4. DATATABLES — thead, rows, pagination
-   ═══════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   4. DATATABLES â€” thead, rows, pagination
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 table.dataTable thead th,
 table.dataTable thead td {
     font-size: .75rem !important;
@@ -129,7 +129,7 @@ table.dataTable tbody tr:hover {
     background: #f0faf3 !important;
 }
 
-/* Pagination — normal links */
+/* Pagination â€” normal links */
 .dataTables_wrapper .pagination .page-link,
 .pagination .page-link {
     color: #0b4d26 !important;
@@ -139,7 +139,7 @@ table.dataTable tbody tr:hover {
     transition: background .2s, color .2s, border-color .2s;
 }
 
-/* Pagination — hover */
+/* Pagination â€” hover */
 .dataTables_wrapper .pagination .page-link:hover,
 .pagination .page-link:hover {
     background-color: #f0faf3 !important;
@@ -147,13 +147,13 @@ table.dataTable tbody tr:hover {
     border-color: #a8e0b9 !important;
 }
 
-/* Pagination — focus */
+/* Pagination â€” focus */
 .dataTables_wrapper .pagination .page-link:focus,
 .pagination .page-link:focus {
     box-shadow: 0 0 0 0.25rem rgba(11, 77, 38, 0.25) !important;
 }
 
-/* Pagination — active page */
+/* Pagination â€” active page */
 .dataTables_wrapper .pagination .page-item.active .page-link,
 .pagination .page-item.active > .page-link {
     background-color: #0b4d26 !important;
@@ -179,9 +179,9 @@ table.dataTable tbody tr:hover {
 }
 
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    5. LINKS & MISC BOOTSTRAP OVERRIDES
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 a.text-primary,
 .text-primary {
     color: #0b4d26 !important;
@@ -201,9 +201,9 @@ a.text-primary,
 }
 
 
-/* ═══════════════════════════════════════════════════
-   6. PESO AMOUNT — baseline-aligned ₱ + number
-   ═══════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   6. PESO AMOUNT â€” baseline-aligned â‚± + number
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .peso-amount {
     display: inline-flex;
     align-items: baseline;
@@ -218,9 +218,9 @@ a.text-primary,
 }
 
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    7. AUTH CARD (login / register pages)
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .auth-card {
     background: #fff;
@@ -231,9 +231,9 @@ a.text-primary,
 }
 
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    8. SIDEBAR & OVERLAY
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 #sidebar {
     transition: transform .3s cubic-bezier(.4, 0, .2, 1);
     will-change: transform;
@@ -257,6 +257,70 @@ a.text-primary,
     visibility: visible;
 }
 body.sidebar-open { overflow: hidden; }
+
+.budget-version-wrap {
+    position: relative;
+    min-height: 46px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.budget-version-wrap:hover {
+    border-color: rgba(249, 186, 21, .35);
+    background: rgba(255, 255, 255, .13);
+}
+
+.budget-version-wrap:focus-within {
+    border-color: rgba(249, 186, 21, .55);
+    box-shadow: 0 0 0 3px rgba(249, 186, 21, .18);
+}
+
+.budget-version-select,
+.budget-version-select-mobile {
+    border: 0;
+    background-color: transparent;
+    background-image: none;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.budget-version-select {
+    padding: 0;
+    font-size: .84rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    max-width: 125px;
+}
+
+.budget-version-chevron {
+    font-size: .65rem;
+    transition: transform .2s ease, color .2s ease;
+}
+
+.budget-version-select-mobile {
+    padding-right: 2rem;
+}
+
+.budget-version-select:focus,
+.budget-version-select-mobile:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.budget-version-select option,
+.budget-version-select-mobile option {
+    color: #1f2937;
+    background: #fff;
+}
+
+.header-datetime {
+    min-width: 210px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.header-datetime:hover {
+    border-color: rgba(249, 186, 21, .35);
+    background: rgba(255, 255, 255, .13);
+}
 
 /* Sidebar links */
 .sidebar-link {
@@ -284,9 +348,9 @@ body.sidebar-open { overflow: hidden; }
 }
 
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    9. HAMBURGER ICON
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .hamburger {
     width: 22px;
     height: 18px;
@@ -314,10 +378,7 @@ body.sidebar-open { overflow: hidden; }
 .hamburger.is-active .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .hamburger.is-active .bar:nth-child(3) { transform: translateY(-7.75px) rotate(-45deg); }
 
-
-/* ═══════════════════════════════════════════════════
-   10. WIZARD STEP INDICATOR (create / edit)
-   ═══════════════════════════════════════════════════ */
+/* Header layout */
 .tab-panel { display: none; animation: fadeSlide .35s ease; }
 .tab-panel.active { display: block; }
 @keyframes fadeSlide {
