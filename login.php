@@ -11,6 +11,7 @@ if (!empty($_SESSION['user_id'])) {
 }
 
 $error = '';
+$username = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -46,6 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+
+$logoRel = 'assets/pho-logo.png';
+if (!is_file(__DIR__ . '/' . $logoRel)) {
+    if (is_file(__DIR__ . '/assets/pho-logo.jpg')) {
+        $logoRel = 'assets/pho-logo.jpg';
+    } elseif (is_file(__DIR__ . '/assets/pho-logo.webp')) {
+        $logoRel = 'assets/pho-logo.webp';
+    }
+}
+$logoUrl = $base . '/' . $logoRel;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,8 +89,16 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 <div class="w-full max-w-md">
     <!-- Logo / Branding -->
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-lg mb-4" style="background:#0b4d26">
-            <i class="fa-solid fa-building-columns text-2xl" style="color:#f9ba15"></i>
+        <div class="flex justify-center mb-4">
+            <div class="h-36 w-36 sm:h-40 sm:w-40 max-h-[200px] max-w-[200px] shrink-0 rounded-full overflow-hidden shadow-md border-0">
+                <img src="<?= e($logoUrl) ?>"
+                     alt="Provincial Health Office of Palawan"
+                     width="200"
+                     height="200"
+                     class="h-full w-full object-cover object-center block border-0 outline-none"
+                     decoding="async"
+                     fetchpriority="high" />
+            </div>
         </div>
         <h1 class="text-2xl font-bold text-gray-800">PHO Budgeting System</h1>
         <p class="text-sm text-gray-500 mt-1">Provincial Health Office</p>
@@ -102,7 +121,13 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-user text-sm"></i></span>
                     <input type="text" id="username" name="username" required autofocus
-                           value="<?= e($username ?? '') ?>"
+                           value="<?= e($username) ?>"
+                           autocomplete="off"
+                           autocorrect="off"
+                           autocapitalize="off"
+                           spellcheck="false"
+                           readonly
+                           onfocus="this.removeAttribute('readonly')"
                            class="form-control w-full pl-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none"
                            placeholder="Enter username" />
                 </div>
@@ -112,6 +137,7 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-lock text-sm"></i></span>
                     <input type="password" id="password" name="password" required
+                           autocomplete="off"
                            class="form-control w-full pl-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none"
                            placeholder="Enter password" />
                 </div>
