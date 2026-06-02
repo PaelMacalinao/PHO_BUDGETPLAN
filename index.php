@@ -100,6 +100,8 @@ require_once __DIR__ . '/includes/header.php';
 .bpt-grand td{background:#1a3c2a;color:#fff;padding:.7rem 1rem;font-weight:800;font-size:.9rem;letter-spacing:.03em}
 .bpt-grand td:last-child{text-align:right;font-family:'Segoe UI',system-ui,sans-serif}
 .bpt-hidden{display:none}
+.bpt-unit,.bpt-item{display:none !important}
+.bpt-show{display:table-row !important}
 .modal-backdrop-custom{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-backdrop-custom.active{display:flex}
 .modal-panel{background:#fff;border-radius:1rem;box-shadow:0 25px 50px rgba(0,0,0,.15);width:100%;max-width:640px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;transform:scale(.95) translateY(10px);opacity:0;transition:all .25s ease}
@@ -188,7 +190,7 @@ require_once __DIR__ . '/includes/header.php';
             $fundId = ($fundName === 'General Fund') ? 'gf' : 'sp';
         ?>
             <!-- FUND ROW -->
-            <tr class="bpt-fund" data-fund="<?= $fundId ?>" onclick="toggleFund('<?= $fundId ?>')">
+            <tr class="bpt-fund" data-fund="<?= $fundId ?>" onclick="toggleFund(event, '<?= $fundId ?>')">
                 <td>
                     <i class="fa-solid fa-chevron-right fund-chevron" id="chevron-<?= $fundId ?>"></i>
                     <i class="fa-solid <?= $fm['icon'] ?> mr-1" style="color:<?= $fm['color'] ?>;font-size:.7rem"></i>
@@ -201,7 +203,7 @@ require_once __DIR__ . '/includes/header.php';
                 $unitSlug = 'u' . crc32($fundId . $unitName);
             ?>
             <!-- UNIT ROW -->
-            <tr class="bpt-unit bpt-hidden" data-parent="<?= $fundId ?>" data-unit="<?= $unitSlug ?>" onclick="toggleUnit('<?= $unitSlug ?>')">
+            <tr class="bpt-unit bpt-hidden" data-parent="<?= $fundId ?>" data-unit="<?= $unitSlug ?>" onclick="toggleUnit(event, '<?= $unitSlug ?>')" style="display:none" hidden>
                 <td>
                     <i class="fa-solid fa-chevron-right unit-chevron" id="chevron-<?= $unitSlug ?>"></i>
                     <?= e(strtoupper($unitName)) ?>
@@ -211,8 +213,8 @@ require_once __DIR__ . '/includes/header.php';
 
                 <?php foreach ($unitData['items'] as $item): ?>
             <!-- ITEM ROW -->
-            <tr class="bpt-item bpt-hidden" data-parent-unit="<?= $unitSlug ?>"
-                onclick='openStep1(<?= json_encode($item, JSON_HEX_APOS | JSON_HEX_TAG | JSON_HEX_QUOT) ?>)'>
+            <tr class="bpt-item bpt-hidden" data-parent-unit="<?= $unitSlug ?>" style="display:none" hidden
+                onclick='openStep1(event, <?= json_encode($item, JSON_HEX_APOS | JSON_HEX_TAG | JSON_HEX_QUOT) ?>)'>
                 <td>
                     <i class="fa-solid fa-file-lines text-gray-300 mr-1" style="font-size:.65rem"></i>
                     <?= e($item['ppa_description']) ?>
@@ -385,7 +387,29 @@ require_once __DIR__ . '/includes/header.php';
     var fundOpen = {};
     var unitOpen = {};
 
-    window.toggleFund = function(fundId) {
+    function showRow(row) {
+        row.hidden = false;
+        row.style.display = 'table-row';
+        row.classList.add('bpt-show');
+    }
+
+    function hideRow(row) {
+        row.hidden = true;
+        row.style.display = 'none';
+        row.classList.remove('bpt-show');
+    }
+
+    function collapseUnit(unitId) {
+        unitOpen[unitId] = false;
+        var uc = document.getElementById('chevron-' + unitId);
+        if (uc) uc.classList.remove('open');
+        document.querySelectorAll('[data-parent-unit="' + unitId + '"]').forEach(function(row) {
+            hideRow(row);
+        });
+    }
+
+    window.toggleFund = function(evt, fundId) {
+        if (evt) evt.stopPropagation();
         var isOpen = !!fundOpen[fundId];
         fundOpen[fundId] = !isOpen;
 
@@ -393,25 +417,19 @@ require_once __DIR__ . '/includes/header.php';
         if (chevron) chevron.classList.toggle('open', !isOpen);
 
         document.querySelectorAll('[data-parent="' + fundId + '"]').forEach(function(row) {
+            var uid = row.dataset.unit;
             if (!isOpen) {
-                row.classList.remove('bpt-hidden');
+                showRow(row);
+                if (uid) collapseUnit(uid);
             } else {
-                row.classList.add('bpt-hidden');
-                var uid = row.dataset.unit;
-                if (uid && unitOpen[uid]) {
-                    unitOpen[uid] = false;
-                    var uc = document.getElementById('chevron-' + uid);
-                    if (uc) uc.classList.remove('open');
-                    document.querySelectorAll('[data-parent-unit="' + uid + '"]').forEach(function(ir) {
-                        ir.classList.add('bpt-hidden');
-                    });
-                }
+                hideRow(row);
+                if (uid) collapseUnit(uid);
             }
         });
     };
 
-    window.toggleUnit = function(unitId) {
-        event.stopPropagation();
+    window.toggleUnit = function(evt, unitId) {
+        if (evt) evt.stopPropagation();
         var isOpen = !!unitOpen[unitId];
         unitOpen[unitId] = !isOpen;
 
@@ -419,9 +437,26 @@ require_once __DIR__ . '/includes/header.php';
         if (chevron) chevron.classList.toggle('open', !isOpen);
 
         document.querySelectorAll('[data-parent-unit="' + unitId + '"]').forEach(function(row) {
-            row.classList.toggle('bpt-hidden', isOpen);
+            if (!isOpen) {
+                showRow(row);
+            } else {
+                hideRow(row);
+            }
         });
     };
+
+    function resetPivotVisibility() {
+        fundOpen = {};
+        unitOpen = {};
+        document.querySelectorAll('.bpt-unit, .bpt-item').forEach(function(row) {
+            hideRow(row);
+        });
+        document.querySelectorAll('.fund-chevron, .unit-chevron').forEach(function(chev) {
+            chev.classList.remove('open');
+        });
+    }
+
+    resetPivotVisibility();
 
     // ══════════════════════════════════════════════
     // HELPERS
@@ -445,8 +480,8 @@ require_once __DIR__ . '/includes/header.php';
     var s1Overlay = document.getElementById('step1Overlay');
     var s1Panel   = document.getElementById('step1Panel');
 
-    window.openStep1 = function(data) {
-        event.stopPropagation();
+    window.openStep1 = function(evt, data) {
+        if (evt) evt.stopPropagation();
         currentData = data;
 
         document.getElementById('s1Name').textContent = data.ppa_description || '';

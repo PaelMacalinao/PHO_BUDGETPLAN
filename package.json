@@ -1,0 +1,14 @@
+{
+  "name": "pho_budgetplan",
+  "private": true,
+  "scripts": {
+    "build:css": "postcss ./assets/css/tailwind.css -o ./assets/css/tailwind.output.css",
+    "watch:css": "postcss ./assets/css/tailwind.css -o ./assets/css/tailwind.output.css --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^3.4.13"
+  }
+}

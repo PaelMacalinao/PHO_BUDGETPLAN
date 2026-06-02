@@ -81,6 +81,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'reset_password') {
+        $targetUserId = (int)($_POST['user_id'] ?? 0);
+        $newPassword = (string)($_POST['new_password'] ?? '');
+        $confirmNewPassword = (string)($_POST['confirm_new_password'] ?? '');
+
+        if ($targetUserId < 1) {
+            $message = 'Invalid user account selected for password reset.';
+            $msgType = 'error';
+        } elseif ($newPassword === '' || $confirmNewPassword === '') {
+            $message = 'Please enter and confirm the new password.';
+            $msgType = 'error';
+        } elseif (strlen($newPassword) < 8) {
+            $message = 'New password must be at least 8 characters long.';
+            $msgType = 'error';
+        } elseif ($newPassword !== $confirmNewPassword) {
+            $message = 'New password confirmation does not match.';
+            $msgType = 'error';
+        } else {
+            try {
+                $checkStmt = $pdo->prepare("SELECT id FROM tbl_users WHERE id = :id LIMIT 1");
+                $checkStmt->execute([':id' => $targetUserId]);
+                if (!$checkStmt->fetch()) {
+                    $message = 'User account not found.';
+                    $msgType = 'error';
+                } else {
+                    $updateStmt = $pdo->prepare("
+                        UPDATE tbl_users
+                        SET password = :password
+                        WHERE id = :id
+                        LIMIT 1
+                    ");
+                    $updateStmt->execute([
+                        ':password' => password_hash($newPassword, PASSWORD_DEFAULT),
+                        ':id' => $targetUserId,
+                    ]);
+                    $message = 'Password updated successfully.';
+                    $msgType = 'success';
+                }
+            } catch (PDOException $e) {
+                error_log('User Password Reset Error: ' . $e->getMessage());
+                $message = 'A database error occurred while resetting the password.';
+                $msgType = 'error';
+            }
+        }
+    }
+
     if ($action === 'delete_user') {
         $deleteUserId = (int)($_POST['user_id'] ?? 0);
         $currentUserId = currentUserId();
@@ -322,6 +368,12 @@ require_once __DIR__ . '/includes/header.php';
                                 ? 'You cannot delete the account you are signed in with.'
                                 : ($isLastAdmin ? 'You cannot delete the last remaining admin account.' : 'Delete this account');
                             ?>
+                            <button type="button"
+                                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-100 transition mr-1"
+                                    onclick="openResetPasswordPrompt(<?= (int)$user['id'] ?>, '<?= e(addslashes((string)$user['fullname'])) ?>')"
+                                    title="Reset this user's password">
+                                <i class="fa-solid fa-key"></i> Reset Password
+                            </button>
                             <form method="POST" class="inline">
                                 <input type="hidden" name="_action" value="delete_user">
                                 <input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
@@ -341,5 +393,40 @@ require_once __DIR__ . '/includes/header.php';
         <?php endif; ?>
     </section>
 </div>
+
+<form id="resetPasswordForm" method="POST" class="hidden">
+    <input type="hidden" name="_action" value="reset_password">
+    <input type="hidden" name="user_id" id="resetUserId" value="">
+    <input type="hidden" name="new_password" id="resetNewPassword" value="">
+    <input type="hidden" name="confirm_new_password" id="resetConfirmPassword" value="">
+</form>
+
+<script>
+function openResetPasswordPrompt(userId, fullName) {
+    var label = (fullName || '').trim() || 'this user';
+    var newPassword = window.prompt('Enter new password for ' + label + ' (minimum 8 characters):', '');
+    if (newPassword === null) return;
+
+    var confirmPassword = window.prompt('Confirm new password:', '');
+    if (confirmPassword === null) return;
+
+    if (newPassword.length < 8) {
+        window.alert('Password must be at least 8 characters long.');
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        window.alert('Password confirmation does not match.');
+        return;
+    }
+    if (!window.confirm('Reset password for ' + label + '?')) {
+        return;
+    }
+
+    document.getElementById('resetUserId').value = String(userId);
+    document.getElementById('resetNewPassword').value = newPassword;
+    document.getElementById('resetConfirmPassword').value = confirmPassword;
+    document.getElementById('resetPasswordForm').submit();
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

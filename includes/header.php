@@ -99,23 +99,10 @@ $menuItems[] = [
     <meta name="base-url" content="<?= e($base) ?>">
     <title><?= e($pageTitle) ?> - <?= APP_NAME ?></title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {50:'#f0faf3',100:'#d5f0dc',200:'#a8e0b9',300:'#6ec98a',400:'#3aad5e',500:'#1a7a3a',600:'#0b4d26',700:'#093f1f',800:'#073218',900:'#052611'},
-                        accent:{50:'#fef9e7',100:'#fdf0c4',200:'#fbe28a',300:'#f9d24f',400:'#f9ba15',500:'#e5a80e',600:'#bf8b09',700:'#8c6607',800:'#5f4504',900:'#332503'},
-                    }
-                }
-            }
-        };
-    </script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="<?= e($base) ?>/assets/css/tailwind.output.css" />
     <link rel="stylesheet" href="<?= e($base) ?>/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
