@@ -1,0 +1,9 @@
+# Requirements for PHO_BUDGETPLAN website
+PHP>=8.0
+MySQL>=8.0
+Apache or Nginx with PHP support (XAMPP recommended)
+Node.js>=18.0  # optional, only needed to build Tailwind CSS assets
+
+# Frontend build
+npm install
+npm run build:css

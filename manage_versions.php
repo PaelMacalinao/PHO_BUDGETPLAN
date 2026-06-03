@@ -42,6 +42,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Clone version (copy proposals) and set active
+    if ($action === 'clone') {
+        $sourceId = (int)($_POST['version_id'] ?? 0);
+        if ($sourceId > 0) {
+            try {
+                $srcStmt = $pdo->prepare("SELECT id, year_name FROM tbl_budget_versions WHERE id = :id LIMIT 1");
+                $srcStmt->execute([':id' => $sourceId]);
+                $src = $srcStmt->fetch();
+
+                if (!$src) {
+                    $message = 'Source version not found.';
+                    $msgType = 'error';
+                } else {
+                    $baseName = trim((string)$src['year_name']);
+                    $baseName = trim(preg_replace('/\s+v\d+\s*$/i', '', $baseName));
+                    if ($baseName === '') {
+                        $baseName = (string)$src['year_name'];
+                    }
+
+                    $nameStmt = $pdo->prepare(
+                        "SELECT year_name FROM tbl_budget_versions WHERE year_name = :base OR year_name LIKE :like"
+                    );
+                    $nameStmt->execute([
+                        ':base' => $baseName,
+                        ':like' => $baseName . ' v%'
+                    ]);
+                    $maxSuffix = 1;
+                    foreach ($nameStmt->fetchAll() as $row) {
+                        $name = (string)$row['year_name'];
+                        if (strcasecmp($name, $baseName) === 0) {
+                            $maxSuffix = max($maxSuffix, 1);
+                            continue;
+                        }
+                        if (preg_match('/\bv(\d+)\s*$/i', $name, $m)) {
+                            $maxSuffix = max($maxSuffix, (int)$m[1]);
+                        }
+                    }
+                    $nextSuffix = max(2, $maxSuffix + 1);
+                    $newName = $baseName . ' v' . $nextSuffix;
+
+                    $pdo->beginTransaction();
+                    $pdo->exec("UPDATE tbl_budget_versions SET is_active = 0");
+                    $insert = $pdo->prepare("INSERT INTO tbl_budget_versions (year_name, is_active) VALUES (:name, 1)");
+                    $insert->execute([':name' => $newName]);
+                    $newId = (int)$pdo->lastInsertId();
+
+                    $copySql = "
+                        INSERT INTO tbl_budget_proposals
+                        (version_id, ppa_description, account_id, fund_source_id, indicator_id, unit_id,
+                         q1_target, q2_target, q3_target, q4_target, target_total,
+                         jan_amt, feb_amt, mar_amt, apr_amt, may_amt, jun_amt,
+                         jul_amt, aug_amt, sep_amt, oct_amt, nov_amt, dec_amt, total_allocation,
+                         justification, created_by)
+                        SELECT :new_id, ppa_description, account_id, fund_source_id, indicator_id, unit_id,
+                               q1_target, q2_target, q3_target, q4_target, target_total,
+                               jan_amt, feb_amt, mar_amt, apr_amt, may_amt, jun_amt,
+                               jul_amt, aug_amt, sep_amt, oct_amt, nov_amt, dec_amt, total_allocation,
+                               justification, created_by
+                        FROM tbl_budget_proposals
+                        WHERE version_id = :src_id
+                    ";
+                    $copyStmt = $pdo->prepare($copySql);
+                    $copyStmt->execute([':new_id' => $newId, ':src_id' => $sourceId]);
+                    $copied = $copyStmt->rowCount();
+
+                    $pdo->commit();
+                    $_SESSION['selected_version_id'] = $newId;
+                    $message = "Version \"{$newName}\" created and set active. Copied {$copied} proposal(s).";
+                    $msgType = 'success';
+                }
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $message = 'Failed to clone version.';
+                $msgType = 'error';
+            }
+        }
+    }
+
     // Set active version
     if ($action === 'set_active') {
         $verId = (int)($_POST['version_id'] ?? 0);
@@ -62,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Delete version (only if it has 0 proposals)
+    // Delete version (non-active versions can be deleted; proposals are removed too)
     if ($action === 'delete') {
         $verId = (int)($_POST['version_id'] ?? 0);
         if ($verId > 0) {
@@ -87,22 +167,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ((int)$ver['is_active'] === 1) {
                         $message = 'Cannot delete the currently active version.';
                         $msgType = 'error';
-                    } elseif ($count > 0) {
-                        $message = "Cannot delete: this version has {$count} proposal(s) linked to it.";
-                        $msgType = 'error';
                     } else {
-                        $stmt = $pdo->prepare("DELETE FROM tbl_budget_versions WHERE id = :id");
-                        $stmt->execute([':id' => $verId]);
+                        $pdo->beginTransaction();
+                        $deleteProposals = $pdo->prepare("DELETE FROM tbl_budget_proposals WHERE version_id = :id");
+                        $deleteProposals->execute([':id' => $verId]);
+                        $deleteVersion = $pdo->prepare("DELETE FROM tbl_budget_versions WHERE id = :id");
+                        $deleteVersion->execute([':id' => $verId]);
+                        $pdo->commit();
 
                         if ((int)($_SESSION['selected_version_id'] ?? 0) === $verId) {
                             unset($_SESSION['selected_version_id']);
                         }
 
                         $message = 'Version "' . $ver['year_name'] . '" deleted successfully.';
+                        if ($count > 0) {
+                            $message .= ' ' . $count . ' linked proposal' . ($count !== 1 ? 's were' : ' was') . ' also deleted.';
+                        }
                         $msgType = 'success';
                     }
                 }
             } catch (PDOException $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $message = 'Failed to delete version.';
                 $msgType = 'error';
             }
@@ -216,18 +303,33 @@ require_once __DIR__ . '/includes/header.php';
                         </button>
                     </form>
                     <form method="POST" class="inline">
+                        <input type="hidden" name="_action" value="clone">
+                        <input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition shadow-sm"
+                                onclick="return confirm('Clone \'<?= e($v['year_name']) ?>\' into a new version (v2/v3) and set it active?')">
+                            <i class="fa-solid fa-copy"></i> Clone
+                        </button>
+                    </form>
+                    <form method="POST" class="inline">
                         <input type="hidden" name="_action" value="delete">
                         <input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>">
                         <button type="submit"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm <?= $count === 0 ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' ?>"
-                                <?= $count === 0 ? '' : 'disabled' ?>
-                                title="<?= $count === 0 ? 'Delete this version' : 'Versions with linked proposals cannot be deleted.' ?>"
-                                onclick="return confirm('Delete \'<?= e($v['year_name']) ?>\'? This cannot be undone.')">
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition shadow-sm"
+                                title="Delete this version and any linked proposals."
+                                onclick="return confirm('Delete \'<?= e($v['year_name']) ?>\'? This will remove all proposals linked to it and cannot be undone.')">
                             <i class="fa-solid fa-trash-can"></i> Delete
                         </button>
                     </form>
                     <?php else: ?>
                     <span class="text-xs text-brand-600 font-medium italic">Currently Active</span>
+                    <form method="POST" class="inline">
+                        <input type="hidden" name="_action" value="clone">
+                        <input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition shadow-sm"
+                                onclick="return confirm('Clone \'<?= e($v['year_name']) ?>\' into a new version (v2/v3) and set it active?')">
+                            <i class="fa-solid fa-copy"></i> Clone
+                        </button>
+                    </form>
                     <button type="button"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-semibold cursor-not-allowed"
                             disabled
@@ -252,7 +354,8 @@ require_once __DIR__ . '/includes/header.php';
                     <li>The <strong>Active</strong> version is the default view for all users upon login.</li>
                     <li>Users can switch between versions using the dropdown in the top navigation bar.</li>
                     <li>Creating a new version starts a clean slate — previous proposals remain untouched under their original version.</li>
-                    <li>Versions with linked proposals cannot be deleted.</li>
+                    <li>Use <strong>Clone</strong> to create a new version (v2/v3) with the same proposals and set it active.</li>
+                    <li>Non-active versions can be deleted, including cloned versions; linked proposals will be removed too.</li>
                 </ul>
             </div>
         </div>

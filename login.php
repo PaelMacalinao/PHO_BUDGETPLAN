@@ -138,8 +138,11 @@ $logoUrl = $base . '/' . $logoRel;
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-lock text-sm"></i></span>
                     <input type="password" id="password" name="password" required
                            autocomplete="off"
-                           class="form-control w-full pl-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none"
+                           class="form-control w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none"
                            placeholder="Enter password" />
+                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-700 focus:outline-none" aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary w-full py-2.5 rounded-lg font-semibold text-sm">
@@ -150,6 +153,22 @@ $logoUrl = $base . '/' . $logoRel;
 
     <p class="text-center text-xs text-gray-400 mt-6">&copy; <?= date('Y') ?> <?= APP_ORG ?>. All rights reserved.</p>
 </div>
+
+<script>
+    (function () {
+        var passwordInput = document.getElementById('password');
+        var toggleButton = document.getElementById('togglePassword');
+
+        if (passwordInput && toggleButton) {
+            toggleButton.addEventListener('click', function () {
+                var isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                this.innerHTML = isPassword ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+                this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+            });
+        }
+    })();
+</script>
 
 </body>
 </html>

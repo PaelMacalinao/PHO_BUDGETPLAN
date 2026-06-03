@@ -195,20 +195,9 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
     }
 </style>
 
-<!-- ═══ Role Toggle Bar ═══ -->
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-    <div>
-        <p class="text-sm text-gray-500">3-Layer drill-down view of all budget proposals grouped by Account Code.</p>
-    </div>
-    <div class="flex items-center gap-2">
-        <span class="text-xs text-gray-400 mr-1">Viewing as:</span>
-        <a href="?set_role=admin" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition <?= $role === 'admin' ? 'bg-red-500 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' ?>">
-            <i class="fa-solid fa-shield-halved mr-1"></i>Admin
-        </a>
-        <a href="?set_role=staff" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition <?= $role === 'staff' ? 'bg-brand-600 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' ?>">
-            <i class="fa-solid fa-user mr-1"></i>Staff
-        </a>
-    </div>
+<!-- ═══ Overview Header ═══ -->
+<div class="mb-6">
+    <p class="text-sm text-gray-500">3-Layer drill-down view of all budget proposals grouped by Account Code.</p>
 </div>
 
 <!-- ═══ Summary Cards ═══ --><div class="summary-cards grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
