@@ -164,6 +164,7 @@ require_once __DIR__ . '/includes/header.php';
                     <td class="py-3 px-2 text-right font-semibold text-emerald-700"><?= peso((float)$r['total_allocation']) ?></td>
                     <td class="py-3 px-2 text-center whitespace-nowrap">
                         <a href="view.php?id=<?= (int)$r['id'] ?>" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 transition" title="View"><i class="fa-solid fa-eye"></i> View</a>
+                        <a href="edit.php?id=<?= (int)$r['id'] ?>" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

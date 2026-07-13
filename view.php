@@ -161,15 +161,51 @@ require_once __DIR__ . '/includes/header.php';
         <i class="fa-solid fa-arrow-left text-xs"></i> Back to Dashboard
     </a>
     <div class="flex items-center gap-2">
-        <?php if (isAdmin()): ?>
+        <?php if (isAdmin() || canSubmitProposals()): ?>
         <a href="edit.php?id=<?= (int)$row['id'] ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 transition shadow-md">
             <i class="fa-solid fa-pen-to-square text-xs"></i> Edit Proposal
         </a>
+        <?php endif; ?>
+        <?php if (isAdmin()): ?>
+        <button type="button" onclick="deleteProposalView(<?= (int)$row['id'] ?>)" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition shadow-md">
+            <i class="fa-solid fa-trash-can text-xs"></i> Delete
+        </button>
         <?php endif; ?>
         <span class="text-xs text-gray-400">Updated: <?= date('M j, Y g:i A', strtotime($row['updated_at'])) ?></span>
     </div>
 </div>
 
 <?php endif; ?>
+
+<script>
+function deleteProposalView(id) {
+    Swal.fire({
+        title: 'Delete Proposal #' + id + '?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Yes, delete',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        const fd = new FormData();
+        fd.append('_action', 'delete');
+        fd.append('id', id);
+        fetch('admin_dashboard.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire({ icon:'success', title:'Deleted!', text:data.message, confirmButtonColor:'#0b4d26', timer:1500, showConfirmButton:false })
+                    .then(() => window.location.href = 'admin_dashboard.php');
+            } else {
+                Swal.fire({ icon:'error', title:'Error', text:data.message, confirmButtonColor:'#ef4444' });
+            }
+        })
+        .catch(() => Swal.fire({ icon:'error', title:'Network Error', text:'Could not reach the server.' }));
+    });
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

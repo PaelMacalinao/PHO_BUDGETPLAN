@@ -16,58 +16,6 @@ if (isset($_GET['set_role']) && in_array($_GET['set_role'], ['admin', 'staff'], 
 $role    = getUserRole();
 $isAdmin = isAdmin();
 
-// ── AJAX: Update proposal ───────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_action'] ?? '') === 'update') {
-    header('Content-Type: application/json; charset=utf-8');
-    try {
-        $pdo    = getConnection();
-        $editId = (int)($_POST['id'] ?? 0);
-        if ($editId < 1) throw new InvalidArgumentException('Invalid ID.');
-
-        $data = [];
-        foreach (['ppa_description', 'justification'] as $f) {
-            $data[$f] = trim($_POST[$f] ?? '');
-            if ($data[$f] === '') throw new InvalidArgumentException("'" . str_replace('_', ' ', $f) . "' is required.");
-        }
-        foreach (['account_id', 'fund_source_id', 'indicator_id', 'unit_id'] as $f) {
-            $data[$f] = (int)($_POST[$f] ?? 0);
-            if ($data[$f] < 1) throw new InvalidArgumentException("Please select a valid " . str_replace('_id', '', $f) . ".");
-        }
-
-        $quarters = ['q1_target', 'q2_target', 'q3_target', 'q4_target'];
-        $tt = 0;
-        foreach ($quarters as $q) { $data[$q] = max(0, (int)($_POST[$q] ?? 0)); $tt += $data[$q]; }
-        $data['target_total'] = $tt;
-
-        $months = ['jan_amt','feb_amt','mar_amt','apr_amt','may_amt','jun_amt','jul_amt','aug_amt','sep_amt','oct_amt','nov_amt','dec_amt'];
-        $at = 0;
-        foreach ($months as $m) { $data[$m] = max(0, round((float)($_POST[$m] ?? 0), 2)); $at += $data[$m]; }
-        $data['total_allocation'] = round($at, 2);
-
-        $sql = "UPDATE tbl_budget_proposals SET
-                    ppa_description=:ppa_description, account_id=:account_id,
-                    fund_source_id=:fund_source_id, indicator_id=:indicator_id, unit_id=:unit_id,
-                    q1_target=:q1_target, q2_target=:q2_target, q3_target=:q3_target, q4_target=:q4_target, target_total=:target_total,
-                    jan_amt=:jan_amt, feb_amt=:feb_amt, mar_amt=:mar_amt, apr_amt=:apr_amt, may_amt=:may_amt, jun_amt=:jun_amt,
-                    jul_amt=:jul_amt, aug_amt=:aug_amt, sep_amt=:sep_amt, oct_amt=:oct_amt, nov_amt=:nov_amt, dec_amt=:dec_amt,
-                    total_allocation=:total_allocation, justification=:justification
-                WHERE id=:id";
-        $stmt = $pdo->prepare($sql);
-        $params = [':id' => $editId];
-        foreach ($data as $k => $v) $params[":$k"] = $v;
-        $stmt->execute($params);
-        echo json_encode(['status' => 'success', 'message' => 'Proposal updated successfully.']);
-    } catch (InvalidArgumentException $e) {
-        http_response_code(422);
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-    } catch (PDOException $e) {
-        error_log('Update Error: ' . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'A database error occurred.']);
-    }
-    exit;
-}
-
 // ── AJAX: Delete proposal ───────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_action'] ?? '') === 'delete') {
     header('Content-Type: application/json; charset=utf-8');
@@ -201,18 +149,18 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
 </div>
 
 <!-- ═══ Summary Cards ═══ --><div class="summary-cards grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-center gap-3">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-center gap-3" data-summary="total">
         <div class="bg-brand-100 text-brand-600 w-10 h-10 rounded-lg flex items-center justify-center shrink-0"><i class="fa-solid fa-peso-sign text-lg"></i></div>
         <div class="min-w-0">
-            <span class="peso-amount text-lg sm:text-xl font-bold text-gray-800 truncate"><span class="peso-sign">&#8369;</span> <?= number_format($grandTotal, 2) ?></span>
+            <span class="peso-amount text-lg sm:text-xl font-bold text-gray-800 truncate"><span class="peso-sign">&#8369;</span> <span class="amount-value"><?= number_format($grandTotal, 2) ?></span></span>
             <span class="block text-[10px] sm:text-xs text-gray-400">Total Allocation</span>
         </div>
     </div>
     <?php foreach ([['MOOE','Maintenance & Other','blue','fa-wrench'], ['CO','Capital Outlay','orange','fa-building'], ['PS','Personal Services','purple','fa-users']] as [$cls,$lbl,$clr,$ico]): ?>
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-center gap-3">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-center gap-3" data-summary="class-<?= $cls ?>">
         <div class="bg-<?= $clr ?>-100 text-<?= $clr ?>-600 w-10 h-10 rounded-lg flex items-center justify-center shrink-0"><i class="fa-solid <?= $ico ?> text-lg"></i></div>
         <div class="min-w-0">
-            <span class="peso-amount text-lg sm:text-xl font-bold text-gray-800 truncate"><span class="peso-sign">&#8369;</span> <?= number_format(($classTotals[$cls] ?? 0), 2) ?></span>
+            <span class="peso-amount text-lg sm:text-xl font-bold text-gray-800 truncate"><span class="peso-sign">&#8369;</span> <span class="amount-value"><?= number_format(($classTotals[$cls] ?? 0), 2) ?></span></span>
             <span class="block text-[10px] sm:text-xs text-gray-400"><?= $cls ?> - <?= $lbl ?></span>
         </div>
     </div>
@@ -275,8 +223,8 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
             </div>
         </div>
         <div class="text-right shrink-0">
-            <span class="block text-sm sm:text-base font-bold text-brand-700"><?= peso($grp['total_alloc']) ?></span>
-            <span class="block text-[10px] text-gray-400"><?= $grp['count'] ?> PPA<?= $grp['count'] > 1 ? 's' : '' ?></span>
+            <span class="block text-sm sm:text-base font-bold text-brand-700 total-amount"><?= peso($grp['total_alloc']) ?></span>
+            <span class="block text-[10px] text-gray-400 total-count"><?= $grp['count'] ?> PPA<?= $grp['count'] > 1 ? 's' : '' ?></span>
         </div>
     </div>
 
@@ -364,17 +312,9 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
 
                         <!-- Actions -->
                         <div class="flex items-center gap-2 pt-3 mt-1 border-t border-gray-200">
-                            <button onclick='openEditModal(<?= json_encode($p, JSON_HEX_APOS | JSON_HEX_TAG) ?>)' class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition shadow-sm">
-                                <i class="fa-solid fa-pen-to-square"></i> Edit
-                            </button>
                             <a href="view.php?id=<?= (int)$p['id'] ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 transition shadow-sm">
                                 <i class="fa-solid fa-eye"></i> View
                             </a>
-                            <?php if ($isAdmin): ?>
-                            <button onclick="deleteProposal(<?= (int)$p['id'] ?>)" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition shadow-sm admin-only-btn">
-                                <i class="fa-solid fa-trash-can"></i> Delete
-                            </button>
-                            <?php endif; ?>
                             <span class="ml-auto text-[10px] text-gray-400">#<?= (int)$p['id'] ?> · <?= date('M j, Y', strtotime($p['created_at'])) ?></span>
                         </div>
                     </div>
@@ -388,118 +328,6 @@ $expBadge   = ['MOOE' => 'bg-blue-100 text-blue-800', 'CO' => 'bg-orange-100 tex
 </div><!-- /account-group -->
 <?php endforeach; ?>
 </div><!-- /accordionRoot -->
-
-<!-- ═══════════════════════════════════════════════════
-     EDIT MODAL (Slide-up panel)
-     ═══════════════════════════════════════════════════ -->
-<div id="editOverlay" class="fixed inset-0 z-[60] bg-black/50 hidden flex items-end sm:items-center justify-center" onclick="if(event.target===this)closeEditModal()">
-    <div id="editPanel" class="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[92vh] flex flex-col transform translate-y-full sm:translate-y-0 sm:scale-95 opacity-0 transition-all duration-300">
-
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-200 shrink-0 bg-amber-50 sm:rounded-t-2xl">
-            <h3 class="text-base font-bold text-amber-900"><i class="fa-solid fa-pen-to-square mr-2"></i>Edit Budget Proposal</h3>
-            <button onclick="closeEditModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <!-- Modal Body (scrollable) -->
-        <form id="editForm" novalidate class="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-5">
-            <input type="hidden" name="_action" value="update">
-            <input type="hidden" name="id" id="eId">
-
-            <!-- PPA Description -->
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">PPA Description <span class="text-red-500">*</span></label>
-                <textarea name="ppa_description" id="ePpa" rows="2" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition resize-none"></textarea>
-                <p class="field-error-msg" data-for="ePpa">PPA Description is required.</p>
-            </div>
-
-            <!-- Dropdowns Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Unit <span class="text-red-500">*</span></label>
-                    <select name="unit_id" id="eUnit" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
-                        <option value="">— Select —</option>
-                        <?php foreach ($units as $u): ?><option value="<?= (int)$u['id'] ?>"><?= e($u['unit_name']) ?></option><?php endforeach; ?>
-                    </select>
-                    <p class="field-error-msg" data-for="eUnit">Unit is required.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Account Code <span class="text-red-500">*</span></label>
-                    <select name="account_id" id="eAccount" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
-                        <option value="">— Select —</option>
-                        <?php foreach ($accounts as $a): ?><option value="<?= (int)$a['id'] ?>"><?= e($a['account_code']) ?> — <?= e($a['account_title']) ?></option><?php endforeach; ?>
-                    </select>
-                    <p class="field-error-msg" data-for="eAccount">Account Code is required.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fund Source <span class="text-red-500">*</span></label>
-                    <select name="fund_source_id" id="eFund" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
-                        <option value="">— Select —</option>
-                        <?php foreach ($fundSrcs as $f): ?><option value="<?= (int)$f['id'] ?>"><?= e($f['fund_name']) ?></option><?php endforeach; ?>
-                    </select>
-                    <p class="field-error-msg" data-for="eFund">Fund Source is required.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Indicator <span class="text-red-500">*</span></label>
-                    <select name="indicator_id" id="eIndicator" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 transition">
-                        <option value="">— Select —</option>
-                        <?php foreach ($indicators as $ind): ?><option value="<?= (int)$ind['id'] ?>"><?= e($ind['indicator_description']) ?></option><?php endforeach; ?>
-                    </select>
-                    <p class="field-error-msg" data-for="eIndicator">Indicator is required.</p>
-                </div>
-            </div>
-
-            <!-- Quarterly Targets -->
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Quarterly Targets</label>
-                <div class="grid grid-cols-5 gap-2">
-                    <?php foreach (['q1_target'=>'Q1','q2_target'=>'Q2','q3_target'=>'Q3','q4_target'=>'Q4'] as $qk => $ql): ?>
-                    <div class="text-center">
-                        <span class="block text-[10px] text-gray-400 mb-1"><?= $ql ?></span>
-                        <input type="number" name="<?= $qk ?>" id="e_<?= $qk ?>" min="0" value="0" class="eq-input w-full text-center text-sm font-semibold border border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-emerald-500 transition">
-                    </div>
-                    <?php endforeach; ?>
-                    <div class="text-center">
-                        <span class="block text-[10px] text-emerald-600 font-bold mb-1">Total</span>
-                        <div class="w-full text-center text-sm font-bold py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800" id="eTargetTotal">0</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Monthly Allocation -->
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Monthly Allocation (₱)</label>
-                <div class="layer3-grid grid gap-2" style="grid-template-columns:repeat(6,1fr)">
-                    <?php for ($mi = 0; $mi < 12; $mi++): ?>
-                    <div class="text-center">
-                        <span class="block text-[10px] text-gray-400 mb-1"><?= $monthNames[$mi] ?></span>
-                        <input type="number" name="<?= $monthKeys[$mi] ?>" id="e_<?= $monthKeys[$mi] ?>" min="0" step="0.01" value="0" class="em-input w-full text-center text-xs font-medium border border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-amber-500 transition">
-                    </div>
-                    <?php endfor; ?>
-                </div>
-                <div class="mt-2 bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
-                    <span class="text-xs text-amber-600 font-semibold">Total Annual Allocation</span>
-                    <span class="text-base font-bold text-amber-800" id="eAllocTotal">₱ 0.00</span>
-                </div>
-            </div>
-
-            <!-- Justification -->
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Justification <span class="text-red-500">*</span></label>
-                <textarea name="justification" id="eJustification" rows="3" required class="ef w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 transition resize-none"></textarea>
-                <p class="field-error-msg" data-for="eJustification">Justification is required.</p>
-            </div>
-        </form>
-
-        <!-- Modal Footer -->
-        <div class="flex items-center justify-end gap-3 px-5 sm:px-6 py-4 border-t border-gray-200 shrink-0 bg-gray-50 sm:rounded-b-2xl">
-            <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Cancel</button>
-            <button type="button" id="editSaveBtn" onclick="submitEditForm()" class="px-6 py-2.5 rounded-lg bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition shadow-md">
-                <i class="fa-solid fa-floppy-disk mr-1.5"></i>Save Changes
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- ═══════════════════════════════════════════════════
      JAVASCRIPT
@@ -544,31 +372,61 @@ const fExpense = document.getElementById('fExpense');
 const fFund    = document.getElementById('fFund');
 const fUnit    = document.getElementById('fUnit');
 
+function formatCurrency(value) {
+    const formatter = new Intl.NumberFormat('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+    return `₱ ${formatter.format(value)}`;
+}
+
 function applyFilters() {
     const expVal  = fExpense.value;
     const fundVal = fFund.value;
     const unitVal = fUnit.value;
 
+    let totalVisibleAlloc = 0;
+    let classVisibleAlloc = { MOOE: 0, CO: 0, PS: 0 };
+
     document.querySelectorAll('.account-group').forEach(group => {
         const groupExp = group.dataset.expense;
-        if (expVal && groupExp !== expVal) {
+        const expenseMatches = !expVal || groupExp === expVal;
+
+        if (!expenseMatches) {
             group.classList.add('filtered-out');
             return;
         }
 
         let visibleCount = 0;
+        let groupVisibleAlloc = 0;
         group.querySelectorAll('.ppa-entry').forEach(ppa => {
             const matchFund = !fundVal || ppa.dataset.fund === fundVal;
             const matchUnit = !unitVal || ppa.dataset.unit === unitVal;
-            if (matchFund && matchUnit) {
-                ppa.classList.remove('filtered-out');
+            const isVisible = matchFund && matchUnit;
+
+            ppa.classList.toggle('filtered-out', !isVisible);
+            if (isVisible) {
+                const alloc = parseFloat(ppa.dataset.alloc || '0');
                 visibleCount++;
-            } else {
-                ppa.classList.add('filtered-out');
+                groupVisibleAlloc += alloc;
+                totalVisibleAlloc += alloc;
+                classVisibleAlloc[groupExp] = (classVisibleAlloc[groupExp] ?? 0) + alloc;
             }
         });
 
         group.classList.toggle('filtered-out', visibleCount === 0);
+        const totalAmountEl = group.querySelector('.total-amount');
+        const totalCountEl  = group.querySelector('.total-count');
+        if (totalAmountEl) totalAmountEl.textContent = formatCurrency(groupVisibleAlloc);
+        if (totalCountEl) totalCountEl.textContent = `${visibleCount} PPA${visibleCount === 1 ? '' : 's'}`;
+    });
+
+    const totalSummaryValue = document.querySelector('[data-summary="total"] .amount-value');
+    if (totalSummaryValue) totalSummaryValue.textContent = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalVisibleAlloc);
+
+    ['MOOE', 'CO', 'PS'].forEach((cls) => {
+        const summaryValueEl = document.querySelector(`[data-summary="class-${cls}"] .amount-value`);
+        if (summaryValueEl) summaryValueEl.textContent = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(classVisibleAlloc[cls] || 0);
     });
 }
 
@@ -602,184 +460,6 @@ if (trackerClock) {
     updateClock();
     setInterval(updateClock, 1000);
 }
-
-// ══════════════════════════════════════════════════
-// EDIT MODAL
-// ══════════════════════════════════════════════════
-const overlay = document.getElementById('editOverlay');
-const panel   = document.getElementById('editPanel');
-const form    = document.getElementById('editForm');
-
-window.openEditModal = function(data) {
-    // Clear previous errors
-    form.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
-    form.querySelectorAll('.field-error-msg').forEach(el => el.classList.remove('visible'));
-
-    // Populate fields
-    document.getElementById('eId').value            = data.id;
-    document.getElementById('ePpa').value           = data.ppa_description;
-    document.getElementById('eUnit').value          = data.unit_id;
-    document.getElementById('eAccount').value       = data.account_id;
-    document.getElementById('eFund').value          = data.fund_source_id;
-    document.getElementById('eIndicator').value     = data.indicator_id;
-    document.getElementById('eJustification').value = data.justification;
-
-    ['q1_target','q2_target','q3_target','q4_target'].forEach(k => {
-        document.getElementById('e_' + k).value = data[k];
-    });
-    <?php for ($i = 0; $i < 12; $i++): ?>
-    document.getElementById('e_<?= $monthKeys[$i] ?>').value = parseFloat(data.<?= $monthKeys[$i] ?>).toFixed(2);
-    <?php endfor; ?>
-
-    computeEditTargets();
-    computeEditAlloc();
-
-    // Show modal with animation
-    overlay.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        panel.classList.remove('translate-y-full', 'sm:scale-95', 'opacity-0');
-        panel.classList.add('translate-y-0', 'sm:scale-100', 'opacity-100');
-    });
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeEditModal = function() {
-    panel.classList.add('translate-y-full', 'sm:scale-95', 'opacity-0');
-    panel.classList.remove('translate-y-0', 'sm:scale-100', 'opacity-100');
-    setTimeout(() => {
-        overlay.classList.add('hidden');
-        document.body.style.overflow = '';
-    }, 300);
-};
-
-// ── Real-time calculations in modal ──────────────
-function computeEditTargets() {
-    let t = 0;
-    document.querySelectorAll('.eq-input').forEach(i => { t += parseInt(i.value) || 0; });
-    document.getElementById('eTargetTotal').textContent = t.toLocaleString();
-}
-function computeEditAlloc() {
-    let t = 0;
-    document.querySelectorAll('.em-input').forEach(i => { t += parseFloat(i.value) || 0; });
-    document.getElementById('eAllocTotal').textContent = '₱ ' + t.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-document.querySelectorAll('.eq-input').forEach(i => i.addEventListener('input', computeEditTargets));
-document.querySelectorAll('.em-input').forEach(i => i.addEventListener('input', computeEditAlloc));
-
-// ── Strict form validation with field focus ──────
-window.submitEditForm = function() {
-    // Clear all errors first
-    form.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
-    form.querySelectorAll('.field-error-msg.visible').forEach(el => el.classList.remove('visible'));
-
-    const required = [
-        { id: 'ePpa',          label: 'PPA Description' },
-        { id: 'eUnit',         label: 'Unit' },
-        { id: 'eAccount',      label: 'Account Code' },
-        { id: 'eFund',         label: 'Fund Source' },
-        { id: 'eIndicator',    label: 'Indicator' },
-        { id: 'eJustification', label: 'Justification' },
-    ];
-
-    let firstError = null;
-
-    required.forEach(({ id }) => {
-        const el = document.getElementById(id);
-        if (!el.value.trim()) {
-            el.classList.add('field-error');
-            const msg = form.querySelector(`.field-error-msg[data-for="${id}"]`);
-            if (msg) msg.classList.add('visible');
-            if (!firstError) firstError = el;
-        }
-    });
-
-    if (firstError) {
-        // Scroll the modal body to the error field and focus it
-        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => firstError.focus(), 350);
-        Swal.fire({
-            icon: 'warning',
-            title: 'Incomplete Form',
-            text: 'Please fill in all required fields highlighted in red.',
-            confirmButtonColor: '#f59e0b',
-            toast: true,
-            position: 'top-end',
-            timer: 3000,
-            showConfirmButton: false,
-        });
-        return;
-    }
-
-    // Submit via AJAX
-    const saveBtn = document.getElementById('editSaveBtn');
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Saving…';
-
-    const fd = new FormData(form);
-
-    fetch(window.location.pathname, { method: 'POST', body: fd })
-    .then(r => r.json())
-    .then(data => {
-        if (data.status === 'success') {
-            closeEditModal();
-            Swal.fire({ icon:'success', title:'Updated!', text:data.message, confirmButtonColor:'#0b4d26', timer:1500, showConfirmButton:false })
-                .then(() => location.reload());
-        } else {
-            Swal.fire({ icon:'error', title:'Error', text:data.message, confirmButtonColor:'#ef4444' });
-        }
-    })
-    .catch(() => Swal.fire({ icon:'error', title:'Network Error', text:'Could not reach the server.' }))
-    .finally(() => {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i>Save Changes';
-    });
-};
-
-// Clear error state on focus
-form.querySelectorAll('.ef').forEach(el => {
-    el.addEventListener('focus', () => {
-        el.classList.remove('field-error');
-        const msg = form.querySelector(`.field-error-msg[data-for="${el.id}"]`);
-        if (msg) msg.classList.remove('visible');
-    });
-});
-
-// ══════════════════════════════════════════════════
-// DELETE (Admin only)
-// ══════════════════════════════════════════════════
-window.deleteProposal = function(id) {
-    Swal.fire({
-        title: 'Delete Proposal #' + id + '?',
-        text: 'This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Yes, delete',
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        reverseButtons: true,
-    }).then(result => {
-        if (!result.isConfirmed) return;
-        const fd = new FormData();
-        fd.append('_action', 'delete');
-        fd.append('id', id);
-        fetch(window.location.pathname, { method: 'POST', body: fd })
-        .then(r => r.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire({ icon:'success', title:'Deleted!', text:data.message, confirmButtonColor:'#0b4d26', timer:1500, showConfirmButton:false })
-                    .then(() => location.reload());
-            } else {
-                Swal.fire({ icon:'error', title:'Error', text:data.message, confirmButtonColor:'#ef4444' });
-            }
-        })
-        .catch(() => Swal.fire({ icon:'error', title:'Network Error' }));
-    });
-};
-
-// ── Keyboard: Escape closes modal ────────────────
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeEditModal();
-});
 
 })();
 </script>

@@ -6,7 +6,7 @@
 require_once __DIR__ . '/config.php';
 requireLogin();
 
-if (!isAdmin()) {
+if (!isAdmin() && !canSubmitProposals()) {
     header('Location: staff_dashboard.php');
     exit;
 }
@@ -21,9 +21,9 @@ try {
         header('Content-Type: application/json; charset=utf-8');
 
         $editId = (int)($_POST['id'] ?? 0);
-        if ($editId < 1) {
-            http_response_code(422);
-            echo json_encode(['status' => 'error', 'message' => 'Invalid ID.']);
+        if ($editId < 1 || !canAccessProposal($pdo, $editId)) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'You are not authorized to edit this proposal.']);
             exit;
         }
 
@@ -81,15 +81,15 @@ try {
         exit;
     }
 
-    if (!$id) {
-        header('Location: index.php');
+    if (!$id || !canAccessProposal($pdo, $id)) {
+        header('Location: ' . (canViewAllData() ? 'index.php' : 'staff_dashboard.php'));
         exit;
     }
     $stmt = $pdo->prepare("SELECT bp.*, ind.indicator_description FROM tbl_budget_proposals bp LEFT JOIN tbl_indicators ind ON bp.indicator_id = ind.id WHERE bp.id = :id LIMIT 1");
     $stmt->execute([':id' => $id]);
     $row = $stmt->fetch();
     if (!$row) {
-        header('Location: index.php');
+        header('Location: ' . (canViewAllData() ? 'index.php' : 'staff_dashboard.php'));
         exit;
     }
 
