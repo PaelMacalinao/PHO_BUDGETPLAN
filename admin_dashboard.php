@@ -393,7 +393,8 @@ function applyFilters() {
     let classVisibleAlloc = { MOOE: 0, CO: 0, PS: 0 };
 
     document.querySelectorAll('.account-group').forEach(group => {
-        const groupExp = group.dataset.expense;
+        const groupClass = (group.dataset.expense || '').trim();
+        const groupExp = normalizeValue(groupClass);
         const expenseMatches = !expVal || groupExp === expVal;
 
         if (!expenseMatches) {
@@ -406,8 +407,7 @@ function applyFilters() {
         group.querySelectorAll('.ppa-entry').forEach(ppa => {
             const matchFund = !fundVal || normalizeValue(ppa.dataset.fund) === fundVal;
             const matchUnit = !unitVal || normalizeValue(ppa.dataset.unit) === unitVal;
-            const matchExpense = !expVal || normalizeValue(groupExp) === expVal;
-            const isVisible = matchExpense && matchFund && matchUnit;
+            const isVisible = matchFund && matchUnit;
 
             ppa.classList.toggle('filtered-out', !isVisible);
             if (isVisible) {
@@ -415,7 +415,8 @@ function applyFilters() {
                 visibleCount++;
                 groupVisibleAlloc += alloc;
                 totalVisibleAlloc += alloc;
-                classVisibleAlloc[groupExp] = (classVisibleAlloc[groupExp] ?? 0) + alloc;
+                const classKey = groupClass.toUpperCase();
+                classVisibleAlloc[classKey] = (classVisibleAlloc[classKey] ?? 0) + alloc;
             }
         });
 
