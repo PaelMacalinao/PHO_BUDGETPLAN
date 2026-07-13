@@ -380,10 +380,14 @@ function formatCurrency(value) {
     return `₱ ${formatter.format(value)}`;
 }
 
+function normalizeValue(value) {
+    return (value || '').trim().toLowerCase();
+}
+
 function applyFilters() {
-    const expVal  = fExpense.value;
-    const fundVal = fFund.value;
-    const unitVal = fUnit.value;
+    const expVal  = normalizeValue(fExpense.value);
+    const fundVal = normalizeValue(fFund.value);
+    const unitVal = normalizeValue(fUnit.value);
 
     let totalVisibleAlloc = 0;
     let classVisibleAlloc = { MOOE: 0, CO: 0, PS: 0 };
@@ -400,9 +404,10 @@ function applyFilters() {
         let visibleCount = 0;
         let groupVisibleAlloc = 0;
         group.querySelectorAll('.ppa-entry').forEach(ppa => {
-            const matchFund = !fundVal || ppa.dataset.fund === fundVal;
-            const matchUnit = !unitVal || ppa.dataset.unit === unitVal;
-            const isVisible = matchFund && matchUnit;
+            const matchFund = !fundVal || normalizeValue(ppa.dataset.fund) === fundVal;
+            const matchUnit = !unitVal || normalizeValue(ppa.dataset.unit) === unitVal;
+            const matchExpense = !expVal || normalizeValue(groupExp) === expVal;
+            const isVisible = matchExpense && matchFund && matchUnit;
 
             ppa.classList.toggle('filtered-out', !isVisible);
             if (isVisible) {
